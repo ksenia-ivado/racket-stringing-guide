@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     # Tennis data: ESPN's free, keyless scoreboard API.
     espn_base_url: str = "https://site.api.espn.com/apis/site/v2/sports/tennis"
     tennis_cache_seconds: int = 300
+    # History: how long the current season is cached, and how many seasons the
+    # static export publishes (past seasons only change if ESPN corrects them).
+    tennis_history_cache_seconds: int = 1800
+    tennis_history_seasons: int = 3
 
 
 settings = Settings()

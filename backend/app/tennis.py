@@ -1,4 +1,4 @@
-"""Current tennis tournaments and singles matches, from ESPN's public scoreboard API.
+"""Tennis tournaments and singles matches, live and past seasons, from ESPN's public API.
 
 ESPN's site API is free and needs no key, but it is undocumented, so parsing is
 defensive: anything unexpected is skipped rather than failing the whole response.
@@ -16,12 +16,16 @@ from pydantic import BaseModel
 from app.config import settings
 
 Tour = Literal["ATP", "WTA"]
+# Combined events (Grand Slams, Indian Wells, Miami, ...) appear in both feeds.
+TourLabel = Literal["ATP", "WTA", "ATP/WTA"]
 Draw = Literal["mens-singles", "womens-singles"]
 MatchStatus = Literal["live", "completed", "scheduled"]
 
 DRAWS: dict[str, Draw] = {"mens-singles": "mens-singles", "womens-singles": "womens-singles"}
 TOURS: dict[Tour, str] = {"ATP": "atp", "WTA": "wta"}
 STATES: dict[str, MatchStatus] = {"in": "live", "post": "completed", "pre": "scheduled"}
+# ESPN's own "major" flag is false even for the Slams, so match on the name.
+GRAND_SLAMS = {"australian open", "roland garros", "french open", "wimbledon", "us open"}
 # ESPN dates tournaments in US Eastern time (a tournament "day" starts at 05:00Z).
 EASTERN = ZoneInfo("America/New_York")
 
@@ -70,7 +74,7 @@ class DrawStats(BaseModel):
 class Tournament(BaseModel):
     id: str
     name: str
-    tour: Tour
+    tour: TourLabel
     location: str | None = None
     start_date: date
     end_date: date
@@ -79,6 +83,8 @@ class Tournament(BaseModel):
 
 
 class Snapshot(BaseModel):
+    # Set for a past (or the current) season's history; None for the live view.
+    season: int | None = None
     updated_at: datetime
     source: str = "ESPN"
     # True when ESPN could not be reached and this is the last good copy.
@@ -109,7 +115,12 @@ def _round_order(round_: dict[str, Any]) -> int:
         rid = int(round_.get("id", 0))
     except (TypeError, ValueError):
         rid = 0
-    return rid - 100 if "qualif" in str(round_.get("displayName", "")).lower() else rid
+    name = str(round_.get("displayName", "")).lower()
+    if "qualif" in name:
+        return rid - 100  # qualifying comes before the main draw
+    if "group" in name or "round robin" in name:
+        return 0  # ATP/WTA Finals: group stage (id 15) comes before the semifinals
+    return rid
 
 
 def _country(athlete: dict[str, Any]) -> str | None:
@@ -173,92 +184,146 @@ def _draw_stats(draw: Draw, matches: list[Match]) -> DrawStats:
     )
 
 
-def parse_scoreboard(tour: Tour, data: dict[str, Any]) -> tuple[list[Tournament], list[Match]]:
-    """Turn one ESPN scoreboard response into tournaments and singles matches."""
-    tournaments: list[Tournament] = []
+def _tournament(tour: Tour, event: dict[str, Any], today: date) -> tuple[Tournament, list[Match]]:
+    tid = str(event.get("id"))
+    by_draw: dict[Draw, list[Match]] = {}
+    for grouping in event.get("groupings") or []:
+        draw = DRAWS.get((grouping.get("grouping") or {}).get("slug", ""))
+        if draw is None:
+            continue  # doubles, mixed, juniors, ...
+        for c in grouping.get("competitions") or []:
+            by_draw.setdefault(draw, []).append(_match(c, tid, draw))
+    # A tournament announced without a draw yet still belongs to its tour's singles.
+    if not by_draw:
+        by_draw = {"mens-singles" if tour == "ATP" else "womens-singles": []}
+    name = event.get("name") or "Unknown tournament"
+    start = _eastern_date(event.get("date"), today)
+    tournament = Tournament(
+        id=tid,
+        name=name,
+        tour=tour,
+        location=(event.get("venue") or {}).get("displayName"),
+        start_date=start,
+        end_date=_eastern_date(event.get("endDate"), start),
+        major=bool(event.get("major")) or name.lower() in GRAND_SLAMS,
+        draws=[_draw_stats(d, ms) for d, ms in by_draw.items()],
+    )
+    return tournament, [m for ms in by_draw.values() for m in ms]
+
+
+def parse_scoreboards(feeds: dict[Tour, dict[str, Any]]) -> tuple[list[Tournament], list[Match]]:
+    """Turn ESPN scoreboard responses into tournaments and singles matches.
+
+    Combined ATP/WTA events are in both feeds with the same id and the same
+    matches, so each event is parsed once and labelled with both tours.
+    """
+    tournaments: dict[str, Tournament] = {}
     matches: list[Match] = []
     today = datetime.now(UTC).date()
-    for event in data.get("events") or []:
-        tid = str(event.get("id"))
-        by_draw: dict[Draw, list[Match]] = {}
-        for grouping in event.get("groupings") or []:
-            draw = DRAWS.get((grouping.get("grouping") or {}).get("slug", ""))
-            if draw is None:
-                continue  # doubles, mixed, juniors, ...
-            for c in grouping.get("competitions") or []:
-                by_draw.setdefault(draw, []).append(_match(c, tid, draw))
-        # A tournament announced without a draw yet still belongs to its tour's singles.
-        if not by_draw:
-            by_draw = {"mens-singles" if tour == "ATP" else "womens-singles": []}
-        start = _eastern_date(event.get("date"), today)
-        tournaments.append(
-            Tournament(
-                id=tid,
-                name=event.get("name") or "Unknown tournament",
-                tour=tour,
-                location=(event.get("venue") or {}).get("displayName"),
-                start_date=start,
-                end_date=_eastern_date(event.get("endDate"), start),
-                major=bool(event.get("major")),
-                draws=[_draw_stats(d, ms) for d, ms in by_draw.items()],
-            )
-        )
-        for ms in by_draw.values():
+    for tour, data in feeds.items():
+        for event in data.get("events") or []:
+            tid = str(event.get("id"))
+            if tid in tournaments:
+                if tournaments[tid].tour != tour:
+                    tournaments[tid].tour = "ATP/WTA"
+                continue
+            tournament, ms = _tournament(tour, event, today)
+            tournaments[tid] = tournament
             matches.extend(ms)
-    return tournaments, matches
+    ordered = sorted(tournaments.values(), key=lambda t: (t.start_date, t.name))
+    return ordered, matches
+
+
+def parse_scoreboard(tour: Tour, data: dict[str, Any]) -> tuple[list[Tournament], list[Match]]:
+    """Parse a single feed."""
+    return parse_scoreboards({tour: data})
 
 
 # ---------- Fetching and caching ----------
 
+FIRST_SEASON = 2015  # earliest season ESPN has full singles results for
 
-async def fetch_scoreboard(client: httpx2.AsyncClient, tour: Tour) -> dict[str, Any]:
+
+def current_season() -> int:
+    return datetime.now(UTC).year
+
+
+def published_seasons() -> list[int]:
+    """The seasons offered in the UI and exported for GitHub Pages, newest first."""
+    now = current_season()
+    return list(range(now, now - settings.tennis_history_seasons, -1))
+
+
+async def fetch_scoreboard(
+    client: httpx2.AsyncClient, tour: Tour, dates: str | None = None
+) -> dict[str, Any]:
     url = f"{settings.espn_base_url}/{TOURS[tour]}/scoreboard"
-    res = await client.get(url, timeout=10)
+    # A whole season is ~20 MB per tour, so allow it more time than the live board.
+    res = await client.get(
+        url, params={"dates": dates} if dates else None, timeout=60 if dates else 10
+    )
     res.raise_for_status()
     return res.json()
 
 
-async def fetch_snapshot() -> Snapshot:
+async def _fetch(dates: str | None = None) -> tuple[list[Tournament], list[Match]]:
     async with httpx2.AsyncClient(headers={"User-Agent": "racket-stringing-guide"}) as client:
-        results = await asyncio.gather(*(fetch_scoreboard(client, tour) for tour in TOURS))
-    tournaments: list[Tournament] = []
-    matches: list[Match] = []
-    for tour, data in zip(TOURS, results, strict=True):
-        ts, ms = parse_scoreboard(tour, data)
-        tournaments.extend(ts)
-        matches.extend(ms)
-    tournaments.sort(key=lambda t: (t.start_date, t.name))
+        results = await asyncio.gather(*(fetch_scoreboard(client, tour, dates) for tour in TOURS))
+    return parse_scoreboards(dict(zip(TOURS, results, strict=True)))
+
+
+async def fetch_snapshot() -> Snapshot:
+    """What is on now: ESPN's current scoreboard for both tours."""
+    tournaments, matches = await _fetch()
     return Snapshot(updated_at=datetime.now(UTC), tournaments=tournaments, matches=matches)
+
+
+async def fetch_season(season: int) -> Snapshot:
+    """Every singles tournament and match of one season, both tours."""
+    tournaments, matches = await _fetch(str(season))
+    return Snapshot(
+        season=season, updated_at=datetime.now(UTC), tournaments=tournaments, matches=matches
+    )
 
 
 class UpstreamError(Exception):
     """ESPN could not be reached and there is no cached copy to fall back on."""
 
 
-_cache: tuple[float, Snapshot] | None = None
-_lock = asyncio.Lock()
+_cache: dict[int | None, tuple[float, Snapshot]] = {}
+_locks: dict[int | None, asyncio.Lock] = {}
 
 
-async def get_snapshot() -> Snapshot:
-    """Cached snapshot; refreshed after `tennis_cache_seconds`. Serves stale data if ESPN fails."""
-    global _cache
-    async with _lock:
+async def _cached(key: int | None, ttl: float, fetch) -> Snapshot:
+    """Return a cached snapshot, refreshing after `ttl` seconds; serve stale data if ESPN fails."""
+    async with _locks.setdefault(key, asyncio.Lock()):
         now = time.monotonic()
-        if _cache and now - _cache[0] < settings.tennis_cache_seconds:
-            return _cache[1]
+        hit = _cache.get(key)
+        if hit and now - hit[0] < ttl:
+            return hit[1]
         try:
-            snap = await fetch_snapshot()
+            snap = await fetch()
         except (httpx2.HTTPError, ValueError) as err:
-            if _cache:
-                return _cache[1].model_copy(update={"stale": True})
+            if hit:
+                return hit[1].model_copy(update={"stale": True})
             raise UpstreamError(str(err)) from err
-        _cache = (now, snap)
+        _cache[key] = (now, snap)
         return snap
 
 
+async def get_snapshot() -> Snapshot:
+    """The live view, cached for `tennis_cache_seconds`."""
+    return await _cached(None, settings.tennis_cache_seconds, fetch_snapshot)
+
+
+async def get_season(season: int) -> Snapshot:
+    """A season's history. The current season changes, so it is refreshed more often."""
+    ttl = settings.tennis_history_cache_seconds if season == current_season() else 24 * 3600
+    return await _cached(season, ttl, lambda: fetch_season(season))
+
+
 def clear_cache() -> None:
-    global _cache
-    _cache = None
+    _cache.clear()
 
 
 # ---------- Filtering ----------

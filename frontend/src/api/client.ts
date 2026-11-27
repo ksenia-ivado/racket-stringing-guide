@@ -68,7 +68,8 @@ export interface DrawStats {
 export interface Tournament {
   id: string
   name: string
-  tour: 'ATP' | 'WTA'
+  /** Combined events (Grand Slams, Indian Wells, ...) are 'ATP/WTA'. */
+  tour: 'ATP' | 'WTA' | 'ATP/WTA'
   location?: string
   start_date: string
   end_date: string
@@ -77,6 +78,8 @@ export interface Tournament {
 }
 
 export interface TennisSnapshot {
+  /** Set on a season's history. */
+  season?: number
   updated_at: string
   source: string
   stale: boolean
@@ -93,5 +96,24 @@ export async function getTennis(signal?: AbortSignal): Promise<TennisSnapshot> {
   const url = apiEnabled ? `${BASE_URL}/api/tennis` : `${import.meta.env.BASE_URL}data/tennis.json`
   const res = await fetch(url, { signal, cache: 'no-cache' })
   if (!res.ok) throw new Error(`Tennis data unavailable (${res.status})`)
+  return res.json()
+}
+
+/* ---------- Tennis history ---------- */
+
+const historyUrl = (path: string) =>
+  apiEnabled ? `${BASE_URL}/api/tennis/history${path}` : `${import.meta.env.BASE_URL}data/history${path}`
+
+/** Seasons with history available, newest first. */
+export async function getHistorySeasons(signal?: AbortSignal): Promise<number[]> {
+  const res = await fetch(historyUrl(apiEnabled ? '/seasons' : '/index.json'), { signal, cache: 'no-cache' })
+  if (!res.ok) throw new Error(`Seasons unavailable (${res.status})`)
+  return (await res.json()).seasons
+}
+
+/** Every singles tournament and match of one season (about 0.5 MB gzipped). */
+export async function getHistory(season: number, signal?: AbortSignal): Promise<TennisSnapshot> {
+  const res = await fetch(historyUrl(apiEnabled ? `?season=${season}` : `/${season}.json`), { signal })
+  if (!res.ok) throw new Error(`History for ${season} unavailable (${res.status})`)
   return res.json()
 }

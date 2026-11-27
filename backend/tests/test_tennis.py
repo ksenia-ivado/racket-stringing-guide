@@ -22,8 +22,12 @@ def fixture(tour: tennis.Tour) -> dict:
 def fake_espn(monkeypatch: pytest.MonkeyPatch):
     """Serve the recorded ESPN responses instead of calling the network."""
 
-    async def fake_fetch(_client, tour):
-        return fixture(tour)
+    async def fake_fetch(_client, tour, dates=None):
+        data = fixture(tour)
+        if dates:  # a season request: tag it so tests can tell it apart
+            for e in data["events"]:
+                e["name"] = f"{e['name']} {dates}"
+        return data
 
     monkeypatch.setattr(tennis, "fetch_scoreboard", fake_fetch)
     tennis.clear_cache()
@@ -89,6 +93,24 @@ def test_parse_skips_garbage() -> None:
     assert tennis.parse_scoreboard("ATP", {"events": [{"groupings": None}]})[1] == []
 
 
+def test_combined_event_is_listed_once() -> None:
+    """Grand Slams and other combined events are in both feeds with the same id."""
+    wta = fixture("WTA")
+    atp = {"events": fixture("ATP")["events"] + wta["events"]}
+    tournaments, matches = tennis.parse_scoreboards({"ATP": atp, "WTA": wta})
+    assert [t.tour for t in tournaments if t.id == "867-2026"] == ["ATP/WTA"]
+    assert len(matches) == 6
+    assert len({m.id for m in matches}) == 6
+
+
+def test_grand_slams_are_detected_by_name() -> None:
+    data = fixture("WTA")
+    data["events"][0]["name"] = "Wimbledon"
+    data["events"][0]["major"] = False  # what ESPN actually sends
+    (t,), _ = tennis.parse_scoreboard("WTA", data)
+    assert t.major is True
+
+
 # ---------- Endpoint ----------
 
 
@@ -132,7 +154,7 @@ def test_invalid_filter_is_rejected() -> None:
 
 
 def test_upstream_down_without_cache_is_502(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def down(_client, _tour):
+    async def down(_client, _tour, _dates=None):
         raise httpx2.ConnectError("no route")
 
     monkeypatch.setattr(tennis, "fetch_scoreboard", down)
@@ -142,7 +164,7 @@ def test_upstream_down_without_cache_is_502(monkeypatch: pytest.MonkeyPatch) -> 
 def test_upstream_down_serves_stale_copy(monkeypatch: pytest.MonkeyPatch) -> None:
     assert client.get("/api/tennis").json()["stale"] is False
 
-    async def down(_client, _tour):
+    async def down(_client, _tour, _dates=None):
         raise httpx2.ConnectError("no route")
 
     monkeypatch.setattr(tennis, "fetch_scoreboard", down)
@@ -150,3 +172,63 @@ def test_upstream_down_serves_stale_copy(monkeypatch: pytest.MonkeyPatch) -> Non
     body = client.get("/api/tennis").json()
     assert body["stale"] is True
     assert len(body["matches"]) == 6
+
+
+# ---------- History ----------
+
+
+def test_history_seasons() -> None:
+    seasons = client.get("/api/tennis/history/seasons").json()["seasons"]
+    assert seasons[0] == tennis.current_season()
+    assert len(seasons) == settings.tennis_history_seasons
+    assert seasons == sorted(seasons, reverse=True)
+
+
+def test_history_returns_a_season() -> None:
+    body = client.get("/api/tennis/history?season=2025").json()
+    assert body["season"] == 2025
+    assert all(t["name"].endswith("2025") for t in body["tournaments"])
+    assert len(body["matches"]) == 6
+
+
+def test_history_defaults_to_current_season() -> None:
+    body = client.get("/api/tennis/history").json()
+    assert body["season"] == tennis.current_season()
+
+
+def test_history_filters() -> None:
+    body = client.get("/api/tennis/history?season=2025&player=erjavec&status=scheduled").json()
+    assert len(body["matches"]) == 1
+
+
+@pytest.mark.parametrize("season", [2014, 3000])
+def test_history_rejects_unknown_seasons(season: int) -> None:
+    assert client.get(f"/api/tennis/history?season={season}").status_code == 422
+
+
+def test_history_is_cached_per_season(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str | None] = []
+
+    async def counting(_client, tour, dates=None):
+        calls.append(dates)
+        return fixture(tour)
+
+    monkeypatch.setattr(tennis, "fetch_scoreboard", counting)
+    client.get("/api/tennis/history?season=2025")
+    client.get("/api/tennis/history?season=2025&draw=mens-singles")
+    client.get("/api/tennis/history?season=2024")
+    assert calls == ["2025", "2025", "2024", "2024"]  # one fetch per tour per season
+
+
+@pytest.mark.parametrize(
+    ("round_", "expected"),
+    [
+        ({"id": "1", "displayName": "Round 1"}, 1),
+        ({"id": "7", "displayName": "Final"}, 7),
+        ({"id": "14", "displayName": "Qualifying Final"}, -86),
+        ({"id": "15", "displayName": "Group Stage"}, 0),
+        ({"id": "x", "displayName": "Round 1"}, 0),
+    ],
+)
+def test_round_order(round_: dict, expected: int) -> None:
+    assert tennis._round_order(round_) == expected

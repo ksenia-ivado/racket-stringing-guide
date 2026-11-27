@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { apiEnabled } from './api/client'
-import { ApiStatus } from './components/ApiStatus'
 import { StepList } from './components/StepList'
 import { StepView } from './components/StepView'
 import { TechniquesPage } from './components/TechniquesPage'
@@ -98,7 +96,6 @@ export default function App() {
     <UnitsProvider value={units}>
       <div className="app">
         <Topbar subtitle={`${steps.length} steps · about ${totalMinutes} min`}>
-          {apiEnabled && <ApiStatus />}
           <HeaderLink href={TENNIS_URL} label="Live tennis" short="Tennis" live />
           <UnitsToggle units={units} onChange={setUnits} />
         </Topbar>

@@ -319,6 +319,120 @@ a.step-list__item {
   color: var(--accent);
 }
 
+/* ---------- Tennis: live / history ---------- */
+.tabs--inline {
+  max-width: none;
+  margin-top: 20px;
+  padding: 0;
+}
+
+.view-meta {
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.check input {
+  accent-color: var(--accent);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.match-group__dates {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.player-card {
+  margin-top: 24px;
+}
+
+.player-card h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.season-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.season-table th,
+.season-table td {
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: baseline;
+  border-bottom: 1px solid var(--border);
+}
+
+.season-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.season-table th {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.season-table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.season-table__dates {
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.season-table .badge {
+  margin-left: 4px;
+}
+
+.table-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.table-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 /* ---------- Header link to the other page ---------- */
 .header-link {
   display: inline-flex;
@@ -419,6 +533,10 @@ a.step-list__item {
   letter-spacing: 0.06em;
 }
 
+.field select {
+  min-width: 0;
+}
+
 .field--grow {
   flex: 1 1 180px;
 }
@@ -495,7 +613,8 @@ a.step-list__item {
 }
 
 .badge--atp,
-.badge--wta {
+.badge--wta,
+.badge--atpwta {
   background: var(--tip-bg);
   color: var(--accent);
 }
@@ -1151,13 +1270,60 @@ a.step-list__item {
     flex: 1 1 140px;
   }
 
+  .field {
+    min-width: 0;
+  }
+
   .field select {
+    width: 100%;
     max-width: none;
   }
 
   .t-grid,
   .matches {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Season table: one stacked card per tournament instead of a wide table */
+  .table-wrap {
+    overflow: visible;
+  }
+
+  .season-table thead {
+    display: none;
+  }
+
+  .season-table tr {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .season-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .season-table td {
+    padding: 0;
+    border: none;
+  }
+
+  .season-table__dates {
+    order: -1;
+    font-size: 0.8rem;
+  }
+
+  .season-table td[data-label] {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.85rem;
+  }
+
+  .season-table td[data-label]::before {
+    content: attr(data-label);
+    color: var(--text-muted);
   }
 
   .tab {
