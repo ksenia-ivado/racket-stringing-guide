@@ -7,6 +7,8 @@ export interface Step {
   instructions: string[]
   tips?: string[]
   warnings?: string[]
+  /** Ids of entries in techniques.ts that go deeper on this step. */
+  related?: string[]
 }
 
 /**
@@ -21,7 +23,7 @@ export const steps: Step[] = [
     minutes: 5,
     instructions: [
       'Stringing machine with mounting supports and two clamps (fixed or flying).',
-      'A set of string: about 12 m (40 ft) for a two-piece job, or a hybrid set with separate mains and crosses.',
+      'A set of string: about {{12 m|40 ft}} for a two-piece job, or a hybrid set with separate mains and crosses.',
       'Sharp string cutters or flush cutters.',
       'An awl or a starting clamp, for opening blocked grommets and tensioning the first cross.',
       'Needle-nose pliers, for pulling knots tight.',
@@ -80,12 +82,12 @@ export const steps: Step[] = [
     summary: 'Split the set into one length for the mains and one for the crosses.',
     minutes: 2,
     instructions: [
-      'For a 16x19 pattern, measure about 6 m (20 ft) for the mains.',
-      'Cut the rest of the set (about 6 m) for the crosses.',
+      'For a 16x19 pattern, measure about {{6 m|20 ft}} for the mains.',
+      'Cut the rest of the set (about {{6 m|20 ft}}) for the crosses.',
       'Cut each end at a sharp angle. A pointed tip feeds through grommets much more easily.',
     ],
     tips: [
-      'Denser patterns like 18x20 need about 0.5 m (2 ft) more on each piece. Check the manufacturer’s recommendation.',
+      'Denser patterns like 18x20 need about {{0.5 m|2 ft}} more on each piece. Check the manufacturer’s recommendation.',
     ],
   },
   {
@@ -101,11 +103,12 @@ export const steps: Step[] = [
       'Repeat for the other centre main.',
     ],
     tips: [
-      'Check your tension setting on the machine before the first pull. Most rackets list a range like 50–60 lb (23–27 kg) inside the throat.',
+      'Check your tension setting on the machine before the first pull. Most rackets list a range like {{23–27 kg|50–60 lb}} inside the throat.',
     ],
   },
   {
     id: 'string-mains',
+    related: ['pull-slack'],
     title: 'String the remaining mains',
     summary: 'Work outwards, alternating sides, one main at a time.',
     minutes: 20,
@@ -124,6 +127,7 @@ export const steps: Step[] = [
   },
   {
     id: 'tie-off-mains',
+    related: ['double-half-hitch', 'tie-off-tension'],
     title: 'Tie off the mains',
     summary: 'Secure each end with a knot at the designated tie-off hole.',
     minutes: 5,
@@ -132,7 +136,7 @@ export const steps: Step[] = [
       'Tension the last main and clamp it.',
       'Tie a double half hitch around the anchor string, next to the grommet.',
       'Pull the knot tight with pliers, or tension the tag end lightly to seat it.',
-      'Repeat for the other side, then trim the tails to about 6 mm (¼ in).',
+      'Repeat for the other side, then trim the tails to about {{6 mm|¼ in}}.',
     ],
     tips: [
       'Many stringers add 10% tension to the last string before tying off, to make up for the tension lost in the knot.',
@@ -140,6 +144,7 @@ export const steps: Step[] = [
   },
   {
     id: 'start-crosses',
+    related: ['starting-knot'],
     title: 'Start the crosses',
     summary: 'Begin at the head and weave the first cross.',
     minutes: 5,
@@ -155,6 +160,7 @@ export const steps: Step[] = [
   },
   {
     id: 'string-crosses',
+    related: ['weave-one-ahead', 'pull-slack'],
     title: 'Weave and tension the crosses',
     summary: 'Work from the head to the throat, alternating the weave each row.',
     minutes: 25,
@@ -171,6 +177,7 @@ export const steps: Step[] = [
   },
   {
     id: 'tie-off-crosses',
+    related: ['double-half-hitch', 'tie-off-tension'],
     title: 'Tie off the crosses',
     summary: 'Finish the last cross with the same knot you used on the mains.',
     minutes: 3,
@@ -178,7 +185,7 @@ export const steps: Step[] = [
       'Tension the last cross and clamp it.',
       'Tie a double half hitch around the anchor main at the tie-off hole.',
       'Seat the knot firmly with pliers.',
-      'Trim the tail to about 6 mm (¼ in).',
+      'Trim the tail to about {{6 mm|¼ in}}.',
     ],
   },
   {
