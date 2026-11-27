@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
+import { GlossaryPage } from './components/GlossaryPage'
 import { StepList } from './components/StepList'
 import { StepView } from './components/StepView'
 import { TechniquesPage } from './components/TechniquesPage'
+import { ToolsPage } from './components/ToolsPage'
 import { HeaderLink, Topbar } from './components/Topbar'
 import { UnitsToggle } from './components/UnitsToggle'
 import { steps, totalMinutes } from './data/steps'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { UnitsProvider, defaultUnits, type Units } from './units'
 
-type Page = 'guide' | 'knots'
+type Page = 'guide' | 'knots' | 'tools' | 'glossary'
 
 /** Live tennis is its own page (tennis.html); see src/tennis.tsx. */
 const TENNIS_URL = `${import.meta.env.BASE_URL}tennis.html`
@@ -19,16 +21,22 @@ function redirectOldTennisLink() {
 }
 redirectOldTennisLink()
 
-/** Hash routes, so deep links work on GitHub Pages: #/ (guide), #/knots, #/knots/<id>. */
+/**
+ * Hash routes, so deep links work on GitHub Pages: #/ (guide), #/step/<id>,
+ * #/knots[/<id>], #/tools[/<id>], #/glossary[/<id>].
+ */
 function parseRoute(hash: string): { page: Page; id?: string } {
   const [, page, id] = hash.replace(/^#/, '').split('/')
-  if (page === 'knots') return { page: 'knots', id: id || undefined }
+  if (page === 'knots' || page === 'tools' || page === 'glossary') return { page, id: id || undefined }
+  if (page === 'step') return { page: 'guide', id: id || undefined }
   return { page: 'guide' }
 }
 
 const TABS: { page: Page; href: string; label: string; short: string }[] = [
   { page: 'guide', href: '#/', label: 'Step-by-step guide', short: 'Guide' },
   { page: 'knots', href: '#/knots', label: 'Knots & techniques', short: 'Knots' },
+  { page: 'tools', href: '#/tools', label: 'Tools', short: 'Tools' },
+  { page: 'glossary', href: '#/glossary', label: 'Glossary', short: 'Terms' },
 ]
 
 function useRoute() {
@@ -63,6 +71,15 @@ export default function App() {
     },
     [setIndex],
   )
+
+  // #/step/<id> (from "Used in" links) opens that step, then settles on #/.
+  const stepId = route.page === 'guide' ? route.id : undefined
+  useEffect(() => {
+    if (!stepId) return
+    const i = steps.findIndex((s) => s.id === stepId)
+    if (i >= 0) goTo(i)
+    window.location.replace('#/')
+  }, [stepId, goTo])
 
   const openStep = (i: number) => {
     window.location.hash = '#/'
@@ -129,6 +146,10 @@ export default function App() {
 
         {route.page === 'knots' ? (
           <TechniquesPage focusId={route.id} onOpenStep={openStep} />
+        ) : route.page === 'tools' ? (
+          <ToolsPage focusId={route.id} />
+        ) : route.page === 'glossary' ? (
+          <GlossaryPage focusId={route.id} />
         ) : (
           <div className="layout">
             <aside className="sidebar">

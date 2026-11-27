@@ -433,6 +433,95 @@ a.step-list__item {
   text-decoration: underline;
 }
 
+/* ---------- Cross-linked terms ---------- */
+.term {
+  color: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--tip-border);
+  text-underline-offset: 3px;
+}
+
+.term:hover {
+  color: var(--accent);
+  text-decoration-style: solid;
+  text-decoration-color: currentColor;
+}
+
+/* ---------- Tools and glossary ---------- */
+.section-title__blurb {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.ref-text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.glossary-search {
+  margin-top: 20px;
+  max-width: 360px;
+}
+
+.glossary {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.glossary__entry {
+  padding: 16px 20px;
+  scroll-margin-top: 90px;
+}
+
+.glossary__entry + .glossary__entry {
+  border-top: 1px solid var(--border);
+}
+
+.glossary__entry.is-focused {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.glossary dt {
+  font-weight: 700;
+}
+
+.glossary dd {
+  margin: 4px 0 0;
+}
+
+.glossary__details {
+  margin-top: 6px;
+  color: var(--text-muted);
+}
+
+.glossary .related {
+  margin-top: 10px;
+  font-size: 0.8rem;
+}
+
+.glossary .chip {
+  padding: 2px 8px;
+  font-size: 0.8rem;
+}
+
+.glossary-group {
+  scroll-margin-top: 90px;
+}
+
+.step-list--scroll {
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.step-list__item--compact {
+  padding: 5px 12px;
+}
+
 /* ---------- Header link to the other page ---------- */
 .header-link {
   display: inline-flex;
@@ -1210,8 +1299,15 @@ a.step-list__item {
     padding: 12px 16px;
   }
 
+  /* "StringTheory" cannot wrap, so the controls drop to a second row when space runs out */
+  .topbar {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
   .topbar__actions {
     gap: 8px;
+    margin-left: auto;
   }
 
   .segmented__long {
@@ -1339,7 +1435,7 @@ a.step-list__item {
   }
 
   /* Every technique is on the page already; the list adds nothing on a phone. */
-  .layout--techniques .sidebar {
+  .layout--reference .sidebar {
     display: none;
   }
 

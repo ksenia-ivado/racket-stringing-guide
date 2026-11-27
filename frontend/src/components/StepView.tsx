@@ -1,7 +1,7 @@
 import { sceneFor } from '../animations/scenes'
 import type { Step } from '../data/steps'
 import { techniques } from '../data/techniques'
-import { fmt, useUnits } from '../units'
+import { Linked } from './Linked'
 import { PixelAnimation } from './PixelAnimation'
 
 interface Props {
@@ -15,7 +15,8 @@ interface Props {
 }
 
 export function StepView({ step, index, total, done, onToggleDone, onPrev, onNext }: Props) {
-  const units = useUnits()
+  // Each glossary term, tool or technique is linked once per step.
+  const seen = new Set<string>()
   const isFirst = index === 0
   const isLast = index === total - 1
   const related = techniques.filter((t) => step.related?.includes(t.id))
@@ -27,7 +28,9 @@ export function StepView({ step, index, total, done, onToggleDone, onPrev, onNex
           Step {index + 1} of {total} · about {step.minutes} min
         </p>
         <h2 id={`step-${step.id}`}>{step.title}</h2>
-        <p className="step__summary">{step.summary}</p>
+        <p className="step__summary">
+          <Linked text={step.summary} seen={seen} />
+        </p>
       </header>
 
       <PixelAnimation
@@ -38,21 +41,21 @@ export function StepView({ step, index, total, done, onToggleDone, onPrev, onNex
 
       <ol className="step__instructions">
         {step.instructions.map((text) => (
-          <li key={text}>{fmt(text, units)}</li>
+          <li key={text}><Linked text={text} seen={seen} /></li>
         ))}
       </ol>
 
       {step.warnings?.map((text) => (
         <aside key={text} className="callout callout--warning">
           <strong>Warning</strong>
-          <p>{fmt(text, units)}</p>
+          <p><Linked text={text} seen={seen} /></p>
         </aside>
       ))}
 
       {step.tips?.map((text) => (
         <aside key={text} className="callout callout--tip">
           <strong>Tip</strong>
-          <p>{fmt(text, units)}</p>
+          <p><Linked text={text} seen={seen} /></p>
         </aside>
       ))}
 

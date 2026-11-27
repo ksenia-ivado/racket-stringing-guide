@@ -23,7 +23,10 @@ export function TennisPage() {
         <p>
           {mode === 'live'
             ? 'Current ATP and WTA tournaments: men’s and women’s singles only.'
-            : 'Past ATP and WTA singles results, season by season. Search a player to see their record.'}
+            : 'Past ATP and WTA singles results, season by season. Search a player to see their record.'}{' '}
+          <a href={`${import.meta.env.BASE_URL}#/glossary/group-matches`} className="page-intro__meta">
+            What do seed, walkover and tiebreak mean?
+          </a>
         </p>
       </header>
 

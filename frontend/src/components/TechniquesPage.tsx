@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
 import { techniqueScene } from '../animations/techniqueScenes'
 import { steps } from '../data/steps'
 import { techniques, type Technique } from '../data/techniques'
-import { fmt, useUnits } from '../units'
+import { useScrollTo } from '../hooks/useScrollTo'
+import { Linked } from './Linked'
 import { PixelAnimation } from './PixelAnimation'
 
 interface Props {
@@ -17,15 +17,11 @@ const GROUPS: { kind: Technique['kind']; title: string }[] = [
 ]
 
 export function TechniquesPage({ focusId, onOpenStep }: Props) {
-  const units = useUnits()
 
-  useEffect(() => {
-    if (focusId) document.getElementById(focusId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    else window.scrollTo({ top: 0 })
-  }, [focusId])
+  useScrollTo(focusId)
 
   return (
-    <div className="layout layout--techniques">
+    <div className="layout layout--reference">
       <aside className="sidebar">
         <nav className="step-list" aria-label="Knots and techniques">
           {GROUPS.map((group) => (
@@ -69,13 +65,16 @@ export function TechniquesPage({ focusId, onOpenStep }: Props) {
               .filter((t) => t.kind === group.kind)
               .map((t) => {
                 const scene = techniqueScene(t.id)
+                const seen = new Set<string>()
                 const usedIn = steps.flatMap((s, i) => (s.related?.includes(t.id) ? [{ step: s, index: i }] : []))
                 return (
                   <article key={t.id} id={t.id} className="step technique" aria-labelledby={`t-${t.id}`}>
                     <header className="step__header">
                       <p className="step__eyebrow">{group.kind === 'knot' ? 'Knot' : 'Technique'}</p>
                       <h2 id={`t-${t.id}`}>{t.title}</h2>
-                      <p className="step__summary">{t.summary}</p>
+                      <p className="step__summary">
+                        <Linked text={t.summary} seen={seen} self={t.id} />
+                      </p>
                     </header>
 
                     {scene && (
@@ -88,14 +87,14 @@ export function TechniquesPage({ focusId, onOpenStep }: Props) {
 
                     <ol className="step__instructions">
                       {t.instructions.map((text) => (
-                        <li key={text}>{fmt(text, units)}</li>
+                        <li key={text}><Linked text={text} seen={seen} self={t.id} /></li>
                       ))}
                     </ol>
 
                     {t.tips?.map((text) => (
                       <aside key={text} className="callout callout--tip">
                         <strong>Tip</strong>
-                        <p>{fmt(text, units)}</p>
+                        <p><Linked text={text} seen={seen} self={t.id} /></p>
                       </aside>
                     ))}
 

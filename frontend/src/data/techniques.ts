@@ -119,7 +119,7 @@ export const techniques: Technique[] = [
     instructions: [
       'After weaving a cross, push it into a wide U across the string bed with your other hand.',
       'Hold it there while you pull the slack through.',
-      'Only then put it in the tension head. The head should add tension, not drag string through.',
+      'Only then put it in the tension head, which should add tension, not drag string through.',
     ],
     tips: [
       'Dragging a cross straight across the mains causes friction burn: it notches the mains and shortens the life of the string job.',
