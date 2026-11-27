@@ -447,6 +447,72 @@ a.step-list__item {
   text-decoration-color: currentColor;
 }
 
+.term-tooltip {
+  position: fixed;
+  z-index: 50;
+  top: -9999px;
+  left: 0;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 16px));
+  padding: 10px 14px 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  animation: tooltip-in 120ms ease-out;
+}
+
+.term-tooltip p {
+  margin: 0;
+}
+
+.term-tooltip__kind {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.term-tooltip__title {
+  margin-top: 2px !important;
+  font-weight: 700;
+}
+
+.term-tooltip__hint {
+  margin-top: 4px !important;
+  color: var(--text-muted);
+}
+
+.term-tooltip__open {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.term-tooltip__open:hover {
+  text-decoration: underline;
+}
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .term-tooltip {
+    animation: none;
+  }
+}
+
 /* ---------- Tools and glossary ---------- */
 .section-title__blurb {
   font-weight: 400;

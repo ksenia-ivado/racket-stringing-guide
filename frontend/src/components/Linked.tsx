@@ -9,7 +9,11 @@ interface Props {
   self?: string
 }
 
-/** Text with glossary terms, tools and techniques turned into links. */
+/**
+ * Text with glossary terms, tools and techniques turned into links. The data
+ * attributes feed the hover tooltip (TermTooltip), so a definition can be read
+ * without leaving the page.
+ */
 export function Linked({ text, seen, self }: Props) {
   const units = useUnits()
   return (
@@ -18,7 +22,14 @@ export function Linked({ text, seen, self }: Props) {
         typeof s === 'string' ? (
           s
         ) : (
-          <a key={i} href={s.target.href} className={`term term--${s.target.kind}`} title={fmt(s.target.hint, units)}>
+          <a
+            key={i}
+            href={s.target.href}
+            className={`term term--${s.target.kind}`}
+            data-kind={s.target.kind}
+            data-title={s.target.title}
+            data-hint={fmt(s.target.hint, units)}
+          >
             {s.text}
           </a>
         ),

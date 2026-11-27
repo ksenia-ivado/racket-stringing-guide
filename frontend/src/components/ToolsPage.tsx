@@ -1,8 +1,10 @@
+import { toolScene } from '../animations/toolScenes'
 import { mentionsOf } from '../data/links'
 import { tools, type Tool } from '../data/tools'
 import { useScrollTo } from '../hooks/useScrollTo'
 import { Linked } from './Linked'
 import { MentionChips } from './MentionChips'
+import { PixelAnimation } from './PixelAnimation'
 
 const GROUPS: { group: Tool['group']; blurb: string }[] = [
   { group: 'Machine', blurb: 'The stringing machine and its parts.' },
@@ -69,6 +71,7 @@ export function ToolsPage({ focusId }: { focusId?: string }) {
 function ToolCard({ tool: t }: { tool: Tool }) {
   // Each term is linked once per card.
   const seen = new Set<string>()
+  const scene = toolScene(t.id)
   return (
     <article id={t.id} className="step technique" aria-labelledby={`tool-${t.id}`}>
       <header className="step__header">
@@ -80,6 +83,10 @@ function ToolCard({ tool: t }: { tool: Tool }) {
           <Linked text={t.summary} seen={seen} self={t.id} />
         </p>
       </header>
+
+      {scene && (
+        <PixelAnimation scene={scene} command={`TOOL_${t.id.replace(/-/g, '_').toUpperCase()}.EXE`} label={t.name} />
+      )}
 
       <div className="ref-text">
         {t.details.map((text) => (

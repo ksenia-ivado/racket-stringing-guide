@@ -3,6 +3,7 @@ import { GlossaryPage } from './components/GlossaryPage'
 import { StepList } from './components/StepList'
 import { StepView } from './components/StepView'
 import { TechniquesPage } from './components/TechniquesPage'
+import { TermTooltip } from './components/TermTooltip'
 import { ToolsPage } from './components/ToolsPage'
 import { HeaderLink, Topbar } from './components/Topbar'
 import { UnitsToggle } from './components/UnitsToggle'
@@ -116,6 +117,7 @@ export default function App() {
           <HeaderLink href={TENNIS_URL} label="Live tennis" short="Tennis" live />
           <UnitsToggle units={units} onChange={setUnits} />
         </Topbar>
+        <TermTooltip />
 
         <div
           className="progress"
