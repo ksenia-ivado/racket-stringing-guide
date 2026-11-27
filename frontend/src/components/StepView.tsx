@@ -1,4 +1,5 @@
 import type { Step } from '../data/steps'
+import { PixelAnimation } from './PixelAnimation'
 
 interface Props {
   step: Step
@@ -23,6 +24,8 @@ export function StepView({ step, index, total, done, onToggleDone, onPrev, onNex
         <h2 id={`step-${step.id}`}>{step.title}</h2>
         <p className="step__summary">{step.summary}</p>
       </header>
+
+      <PixelAnimation stepId={step.id} title={step.title} number={index + 1} />
 
       <ol className="step__instructions">
         {step.instructions.map((text) => (
