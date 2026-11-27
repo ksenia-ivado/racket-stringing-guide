@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useT } from '../i18n'
 
 /** Where feedback goes. The deploy workflow sets this from the repository it builds. */
 const REPO = import.meta.env.VITE_GITHUB_REPO || 'ksenia-ivado/string-theory'
@@ -37,6 +38,7 @@ export function Footer() {
 }
 
 function FeedbackButton() {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [kind, setKind] = useState<Kind>('Idea')
   const [message, setMessage] = useState('')
@@ -83,17 +85,17 @@ function FeedbackButton() {
         aria-controls={`${id}-panel`}
         onClick={() => setOpen((o) => !o)}
       >
-        Feedback
+        {t('feedback.button')}
       </button>
 
       {open && (
         <div ref={panelRef} id={`${id}-panel`} className="feedback__panel" role="dialog" aria-labelledby={`${id}-title`}>
           <form onSubmit={submit}>
             <p id={`${id}-title`} className="feedback__title">
-              Share feedback
+              {t('feedback.title')}
             </p>
 
-            <div className="segmented" role="radiogroup" aria-label="Kind of feedback">
+            <div className="segmented" role="radiogroup" aria-label={t('feedback.kindAria')}>
               {KINDS.map((k) => (
                 <button
                   key={k}
@@ -103,17 +105,17 @@ function FeedbackButton() {
                   className={`segmented__option${kind === k ? ' is-active' : ''}`}
                   onClick={() => setKind(k)}
                 >
-                  {k}
+                  {t(`feedback.${k}`)}
                 </button>
               ))}
             </div>
 
             <label className="field">
-              <span className="visually-hidden">Your feedback</span>
+              <span className="visually-hidden">{t('feedback.label')}</span>
               <textarea
                 rows={4}
                 maxLength={MAX_MESSAGE}
-                placeholder="What worked, what did not, what is missing?"
+                placeholder={t('feedback.placeholder')}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 required
@@ -121,12 +123,9 @@ function FeedbackButton() {
             </label>
 
             <button type="submit" className="button button--primary" disabled={!message.trim()}>
-              Continue on GitHub →
+              {t('feedback.submit')}
             </button>
-            <p className="feedback__note">
-              Opens GitHub with your message filled in; a free account is needed to submit. Feedback is posted
-              publicly on the project’s issue tracker.
-            </p>
+            <p className="feedback__note">{t('feedback.note')}</p>
           </form>
         </div>
       )}

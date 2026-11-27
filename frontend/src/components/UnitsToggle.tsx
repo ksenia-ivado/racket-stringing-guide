@@ -1,3 +1,4 @@
+import { useT } from '../i18n'
 import type { Units } from '../units'
 
 interface Props {
@@ -5,14 +6,15 @@ interface Props {
   onChange: (units: Units) => void
 }
 
-const OPTIONS: { value: Units; label: string; short: string }[] = [
-  { value: 'metric', label: 'Metric', short: 'm · kg' },
-  { value: 'imperial', label: 'Imperial', short: 'ft · lb' },
+const OPTIONS: { value: Units; short: string }[] = [
+  { value: 'metric', short: 'm · kg' },
+  { value: 'imperial', short: 'ft · lb' },
 ]
 
 export function UnitsToggle({ units, onChange }: Props) {
+  const t = useT()
   return (
-    <div className="segmented" role="radiogroup" aria-label="Units">
+    <div className="segmented" role="radiogroup" aria-label={t('units.aria')}>
       {OPTIONS.map((o) => (
         <button
           key={o.value}
@@ -22,7 +24,7 @@ export function UnitsToggle({ units, onChange }: Props) {
           className={`segmented__option${units === o.value ? ' is-active' : ''}`}
           onClick={() => onChange(o.value)}
         >
-          <span className="segmented__long">{o.label}</span>
+          <span className="segmented__long">{t(o.value === 'metric' ? 'units.metric' : 'units.imperial')}</span>
           <span className="segmented__short" aria-hidden="true">
             {o.short}
           </span>

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getHistory, getHistorySeasons, type Draw, type Match, type TennisSnapshot, type Tournament } from '../../api/client'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
-import { DRAW_LABEL, formatDay, type DrawFilter } from './format'
+import { roundName, useLang, useT } from '../../i18n'
+import { formatDay, type DrawFilter } from './format'
 import { DrawToggle, MatchGroups, TourBadges, TournamentCard } from './Matches'
 
 interface Filters {
@@ -26,6 +27,7 @@ const DRAWS: Draw[] = ['mens-singles', 'womens-singles']
 
 /** Past results: pick a season, then narrow by draw, Slams, tournament, round or player. */
 export function HistoryView() {
+  const t = useT()
   const [seasons, setSeasons] = useState<number[] | null>(null)
   const [seasonsError, setSeasonsError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState<Record<number, TennisSnapshot>>({})
@@ -61,8 +63,8 @@ export function HistoryView() {
   // Keyed on the stored filters (a stable state value), not the merged copy made each render.
   const view = useMemo(() => (data ? derive(data, { ...DEFAULT_FILTERS, ...stored }) : null), [data, stored])
 
-  if (seasonsError) return <p className="empty">Could not load the list of seasons: {seasonsError}</p>
-  if (!seasons || season == null) return <p className="empty">Loading seasons…</p>
+  if (seasonsError) return <p className="empty">{t('hist.seasonsError', { error: seasonsError })}</p>
+  if (!seasons || season == null) return <p className="empty">{t('hist.loadingSeasons')}</p>
 
   const filtered =
     filters.draw !== 'all' || filters.slams || filters.tournament !== 'all' || filters.round !== 'all' || filters.player !== ''
@@ -70,9 +72,9 @@ export function HistoryView() {
 
   return (
     <>
-      <div className="filters" role="search" aria-label="Filter past results">
+      <div className="filters" role="search" aria-label={t('hist.filtersAria')}>
         <label className="field">
-          <span>Season</span>
+          <span>{t('hist.season')}</span>
           <select
             value={season}
             // Tournament ids are per season, so a new season starts from the whole year.
@@ -90,15 +92,15 @@ export function HistoryView() {
 
         <label className="check">
           <input type="checkbox" checked={filters.slams} onChange={(e) => setFilters({ slams: e.target.checked })} />
-          Grand Slams only
+          {t('hist.slamsOnly')}
         </label>
 
         {view && (
           <>
             <label className="field">
-              <span>Tournament</span>
+              <span>{t('filters.tournament')}</span>
               <select value={view.tournament} onChange={(e) => setFilters({ tournament: e.target.value })}>
-                <option value="all">All tournaments</option>
+                <option value="all">{t('filters.allTournaments')}</option>
                 {view.tournaments.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
@@ -108,23 +110,23 @@ export function HistoryView() {
             </label>
 
             <label className="field">
-              <span>Round</span>
+              <span>{t('filters.round')}</span>
               <select value={view.round} onChange={(e) => setFilters({ round: e.target.value })}>
-                <option value="all">All rounds</option>
+                <option value="all">{t('filters.allRounds')}</option>
                 {view.rounds.map((r) => (
                   <option key={r} value={r}>
-                    {r}
+                    {roundName(t, r)}
                   </option>
                 ))}
               </select>
             </label>
 
             <label className="field field--grow">
-              <span>Player</span>
+              <span>{t('filters.player')}</span>
               <input
                 type="search"
                 list="history-players"
-                placeholder="Search a player's season"
+                placeholder={t('hist.playerPlaceholder')}
                 value={filters.player}
                 onChange={(e) => setFilters({ player: e.target.value })}
               />
@@ -139,7 +141,7 @@ export function HistoryView() {
 
         {filtered && (
           <button type="button" className="link-button" onClick={clear}>
-            Clear filters
+            {t('filters.clear')}
           </button>
         )}
       </div>
@@ -147,8 +149,8 @@ export function HistoryView() {
       {!view ? (
         <p className="empty">
           {loadError?.season === season
-            ? `Could not load ${season}: ${loadError.message}`
-            : `Loading the ${season} season…`}
+            ? t('hist.loadError', { season, error: loadError.message })
+            : t('hist.loading', { season })}
         </p>
       ) : (
         <HistoryResults
@@ -238,14 +240,15 @@ interface ResultsProps {
 }
 
 function HistoryResults({ view, season, draw, onTournament, onPlayer, onClear }: ResultsProps) {
+  const t = useT()
   const { tournaments, tournament, round, visible, searching } = view
 
   if (tournaments.length === 0) {
     return (
       <p className="empty">
-        No tournaments fit these filters in {season}.{' '}
+        {t('hist.noTournaments', { season })}{' '}
         <button type="button" className="link-button" onClick={onClear}>
-          Clear filters
+          {t('filters.clear')}
         </button>
       </p>
     )
@@ -270,7 +273,7 @@ function HistoryResults({ view, season, draw, onTournament, onPlayer, onClear }:
 
       {view.suggestions.length > 1 && (
         <p className="related">
-          <span>Players matching:</span>
+          <span>{t('hist.playersMatching')}</span>
           {view.suggestions.map((n) => (
             <button key={n} type="button" className="chip" onClick={() => onPlayer(n)}>
               {n}
@@ -291,18 +294,18 @@ function HistoryResults({ view, season, draw, onTournament, onPlayer, onClear }:
       )}
 
       <h3 className="section-title">
-        Matches <span className="count">{visible.length}</span>
+        {t('matches.title')} <span className="count">{visible.length}</span>
       </h3>
       {visible.length > limit && (
         <p className="view-meta">
-          Showing the {limit} most recent. Pick a tournament, round or player to see the rest.
+          {t('hist.limit', { limit })}
         </p>
       )}
       {visible.length === 0 ? (
         <p className="empty">
-          No matches fit these filters.{' '}
+          {t('matches.none')}{' '}
           <button type="button" className="link-button" onClick={onClear}>
-            Clear filters
+            {t('filters.clear')}
           </button>
         </p>
       ) : (
@@ -320,21 +323,23 @@ interface TableProps {
 }
 
 function SeasonTable({ tournaments, draw, onTournament, onPlayer }: TableProps) {
+  const tr = useT()
+  const lang = useLang()
   const draws = DRAWS.filter((d) => draw === 'all' || d === draw)
   return (
     <>
       <h3 className="section-title">
-        Tournaments <span className="count">{tournaments.length}</span>
+        {tr('hist.tournaments')} <span className="count">{tournaments.length}</span>
       </h3>
       <div className="table-wrap">
         <table className="season-table">
           <thead>
             <tr>
-              <th scope="col">Dates</th>
-              <th scope="col">Tournament</th>
+              <th scope="col">{tr('hist.dates')}</th>
+              <th scope="col">{tr('hist.tournament')}</th>
               {draws.map((d) => (
                 <th key={d} scope="col">
-                  {d === 'mens-singles' ? "Men's champion" : "Women's champion"}
+                  {tr(`hist.champion.${d}`)}
                 </th>
               ))}
             </tr>
@@ -343,7 +348,7 @@ function SeasonTable({ tournaments, draw, onTournament, onPlayer }: TableProps) 
             {tournaments.map((t) => (
               <tr key={t.id}>
                 <td className="season-table__dates">
-                  {formatDay(t.start_date)} – {formatDay(t.end_date)}
+                  {formatDay(t.start_date, lang)} – {formatDay(t.end_date, lang)}
                 </td>
                 <td>
                   <button type="button" className="table-link" onClick={() => onTournament(t.id)}>
@@ -354,15 +359,15 @@ function SeasonTable({ tournaments, draw, onTournament, onPlayer }: TableProps) 
                 {draws.map((d) => {
                   const stats = t.draws.find((s) => s.draw === d)
                   return (
-                    <td key={d} data-label={d === 'mens-singles' ? "Men's champion" : "Women's champion"}>
+                    <td key={d} data-label={tr(`hist.champion.${d}`)}>
                       {stats?.champion ? (
                         <button type="button" className="table-link" onClick={() => onPlayer(stats.champion!)}>
                           {stats.champion}
                         </button>
                       ) : stats && stats.matches > 0 ? (
-                        <span className="muted">{stats.current_round ? `In progress (${stats.current_round})` : '—'}</span>
+                        <span className="muted">{stats.current_round ? tr('hist.inProgress', { round: roundName(tr, stats.current_round) }) : '—'}</span>
                       ) : (
-                        <span className="muted" aria-label={`No ${DRAW_LABEL[d]}`}>
+                        <span className="muted" aria-label={tr(`draw.${d}`)}>
                           —
                         </span>
                       )}
@@ -386,6 +391,7 @@ interface SummaryProps {
 
 /** Win/loss record and finals for one player, within the current filters. */
 function PlayerSummary({ name, matches, tournaments }: SummaryProps) {
+  const t = useT()
   const own = matches.filter((m) => m.players.some((p) => p.name === name))
   const decided = own.filter((m) => m.status === 'completed' && m.players.some((p) => p.winner))
   const won = decided.filter((m) => m.players.find((p) => p.name === name)?.winner).length
@@ -397,28 +403,28 @@ function PlayerSummary({ name, matches, tournaments }: SummaryProps) {
   const runnerUp = finals.filter((m) => !m.players.find((p) => p.name === name)?.winner).map(nameOf)
 
   return (
-    <section className="t-card player-card" aria-label={`${name}'s record`}>
+    <section className="t-card player-card" aria-label={t('player.recordAria', { name })}>
       <header>
         <h3>
           {name} {country && <span className="match__country">{country}</span>}
         </h3>
-        <p className="t-card__meta">Record within the current filters</p>
+        <p className="t-card__meta">{t('player.record')}</p>
       </header>
       <dl className="stats">
         <div>
-          <dt>Matches</dt>
+          <dt>{t('player.matches')}</dt>
           <dd>{decided.length}</dd>
         </div>
         <div>
-          <dt>Won</dt>
+          <dt>{t('player.won')}</dt>
           <dd className="is-live">{won}</dd>
         </div>
         <div>
-          <dt>Lost</dt>
+          <dt>{t('player.lost')}</dt>
           <dd>{lost}</dd>
         </div>
         <div>
-          <dt>Win rate</dt>
+          <dt>{t('player.winRate')}</dt>
           <dd>{decided.length ? `${Math.round((won / decided.length) * 100)}%` : '—'}</dd>
         </div>
       </dl>
@@ -426,11 +432,15 @@ function PlayerSummary({ name, matches, tournaments }: SummaryProps) {
         <p className="t-draw__status">
           {titles.length > 0 && (
             <>
-              Titles: <strong>{titles.join(', ')}</strong>
+              {t('player.titles')} <strong>{titles.join(', ')}</strong>
             </>
           )}
           {titles.length > 0 && runnerUp.length > 0 && <br />}
-          {runnerUp.length > 0 && <>Runner-up: {runnerUp.join(', ')}</>}
+          {runnerUp.length > 0 && (
+            <>
+              {t('player.runnerUp')} {runnerUp.join(', ')}
+            </>
+          )}
         </p>
       )}
     </section>

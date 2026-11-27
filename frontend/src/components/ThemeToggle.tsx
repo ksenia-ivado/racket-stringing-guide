@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useT } from '../i18n'
 
 export type Theme = 'dark' | 'light'
 
@@ -12,14 +13,16 @@ export function ThemeToggle() {
   }, [theme])
 
   const next = theme === 'dark' ? 'light' : 'dark'
+  const t = useT()
+  const label = t(next === 'dark' ? 'theme.toDark' : 'theme.toLight')
 
   return (
     <button
       type="button"
       className="icon-button"
       onClick={() => setTheme(next)}
-      aria-label={`Switch to ${next} theme`}
-      title={`Switch to ${next} theme`}
+      aria-label={label}
+      title={label}
     >
       {theme === 'dark' ? (
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">

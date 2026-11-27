@@ -1,41 +1,42 @@
 import { toolScene } from '../animations/toolScenes'
-import { mentionsOf } from '../data/links'
-import { tools, type Tool } from '../data/tools'
+import { useLinks } from '../data/links'
+import type { Tool } from '../data/tools'
 import { useScrollTo } from '../hooks/useScrollTo'
+import { useT } from '../i18n'
+import { useContent } from '../i18n/content'
 import { Linked } from './Linked'
 import { MentionChips } from './MentionChips'
 import { PixelAnimation } from './PixelAnimation'
+import { Sources } from './Sources'
 
-const GROUPS: { group: Tool['group']; blurb: string }[] = [
-  { group: 'Machine', blurb: 'The stringing machine and its parts.' },
-  { group: 'Hand tools', blurb: 'Small tools you keep next to the machine.' },
-  { group: 'Supplies', blurb: 'What gets used up.' },
-]
+const GROUPS: Tool['group'][] = ['Machine', 'Hand tools', 'Supplies']
 
 export function ToolsPage({ focusId }: { focusId?: string }) {
+  const t = useT()
+  const { tools } = useContent()
   useScrollTo(focusId)
 
   return (
     <div className="layout layout--reference">
       <aside className="sidebar">
-        <nav className="step-list" aria-label="Tools">
-          {GROUPS.map(({ group }) => (
+        <nav className="step-list" aria-label={t('tools.title')}>
+          {GROUPS.map((group) => (
             <div key={group} className="step-list__group">
-              <p className="step-list__heading">{group}</p>
+              <p className="step-list__heading">{t(`tools.group.${group}`)}</p>
               <ol>
                 {tools
-                  .filter((t) => t.group === group)
-                  .map((t) => (
-                    <li key={t.id}>
+                  .filter((x) => x.group === group)
+                  .map((x) => (
+                    <li key={x.id}>
                       <a
-                        href={`#/tools/${t.id}`}
-                        className={`step-list__item${t.id === focusId ? ' is-current' : ''}`}
-                        aria-current={t.id === focusId ? 'location' : undefined}
+                        href={`#/tools/${x.id}`}
+                        className={`step-list__item${x.id === focusId ? ' is-current' : ''}`}
+                        aria-current={x.id === focusId ? 'location' : undefined}
                       >
                         <span className="step-list__marker" aria-hidden="true">
-                          {group[0]}
+                          {t(`tools.group.${group}`)[0]}
                         </span>
-                        <span className="step-list__title">{t.name}</span>
+                        <span className="step-list__title">{x.name}</span>
                       </a>
                     </li>
                   ))}
@@ -47,19 +48,20 @@ export function ToolsPage({ focusId }: { focusId?: string }) {
 
       <main className="content">
         <header className="page-intro">
-          <h2>Tools</h2>
-          <p>What you need to string a racket, and what each part of the machine does.</p>
+          <h2>{t('tools.title')}</h2>
+          <p>{t('tools.intro')}</p>
         </header>
 
-        {GROUPS.map(({ group, blurb }) => (
+        {GROUPS.map((group) => (
           <section key={group} aria-labelledby={`tools-${group}`}>
             <h3 id={`tools-${group}`} className="section-title">
-              {group} <span className="section-title__blurb">· {blurb}</span>
+              {t(`tools.group.${group}`)}{' '}
+              <span className="section-title__blurb">· {t(`tools.blurb.${group}`)}</span>
             </h3>
             {tools
-              .filter((t) => t.group === group)
-              .map((t) => (
-                <ToolCard key={t.id} tool={t} />
+              .filter((x) => x.group === group)
+              .map((x) => (
+                <ToolCard key={x.id} tool={x} />
               ))}
           </section>
         ))}
@@ -68,59 +70,47 @@ export function ToolsPage({ focusId }: { focusId?: string }) {
   )
 }
 
-function ToolCard({ tool: t }: { tool: Tool }) {
+function ToolCard({ tool: x }: { tool: Tool }) {
+  const t = useT()
+  const { mentionsOf } = useLinks()
   // Each term is linked once per card.
   const seen = new Set<string>()
-  const scene = toolScene(t.id)
+  const scene = toolScene(x.id)
   return (
-    <article id={t.id} className="step technique" aria-labelledby={`tool-${t.id}`}>
+    <article id={x.id} className="step technique" aria-labelledby={`tool-${x.id}`}>
       <header className="step__header">
         <p className="step__eyebrow">
-          {t.group} · {t.essential ? 'Essential' : 'Nice to have'}
+          {t(`tools.group.${x.group}`)} · {t(x.essential ? 'tools.essential' : 'tools.optional')}
         </p>
-        <h2 id={`tool-${t.id}`}>{t.name}</h2>
+        <h2 id={`tool-${x.id}`}>{x.name}</h2>
         <p className="step__summary">
-          <Linked text={t.summary} seen={seen} self={t.id} />
+          <Linked text={x.summary} seen={seen} self={x.id} />
         </p>
       </header>
 
       {scene && (
-        <PixelAnimation scene={scene} command={`TOOL_${t.id.replace(/-/g, '_').toUpperCase()}.EXE`} label={t.name} />
+        <PixelAnimation scene={scene} command={`TOOL_${x.id.replace(/-/g, '_').toUpperCase()}.EXE`} label={x.name} />
       )}
 
       <div className="ref-text">
-        {t.details.map((text) => (
+        {x.details.map((text) => (
           <p key={text}>
-            <Linked text={text} seen={seen} self={t.id} />
+            <Linked text={text} seen={seen} self={x.id} />
           </p>
         ))}
       </div>
 
-      {t.tips?.map((text) => (
+      {x.tips?.map((text) => (
         <aside key={text} className="callout callout--tip">
-          <strong>Tip</strong>
+          <strong>{t('callout.tip')}</strong>
           <p>
-            <Linked text={text} seen={seen} self={t.id} />
+            <Linked text={text} seen={seen} self={x.id} />
           </p>
         </aside>
       ))}
 
-      <MentionChips label="Used in:" items={mentionsOf(t.id)} />
-
-      {t.sources && (
-        <details className="sources">
-          <summary>Sources</summary>
-          <ol>
-            {t.sources.map((s) => (
-              <li key={s.url}>
-                <a href={s.url} target="_blank" rel="noopener noreferrer">
-                  {s.title}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </details>
-      )}
+      <MentionChips label={t('related.usedIn')} items={mentionsOf(x.id)} />
+      <Sources sources={x.sources} />
     </article>
   )
 }

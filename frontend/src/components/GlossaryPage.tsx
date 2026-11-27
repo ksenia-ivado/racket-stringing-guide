@@ -1,52 +1,58 @@
 import { useState } from 'react'
-import { TERM_CATEGORIES, glossary, glossarySources, type Term } from '../data/glossary'
-import { mentionsOf, targets } from '../data/links'
+import { TERM_CATEGORIES, glossarySources, type Term } from '../data/glossary'
+import { useLinks } from '../data/links'
 import { useScrollTo } from '../hooks/useScrollTo'
+import { localeOf, useLang, useT } from '../i18n'
+import { useContent } from '../i18n/content'
 import { Linked } from './Linked'
 import { MentionChips } from './MentionChips'
-
-const BLURBS: Record<Term['category'], string> = {
-  Racket: 'Parts of the frame.',
-  Strings: 'Strings, their materials and the string bed.',
-  Stringing: 'Words for the job itself.',
-  Matches: 'Terms used on the live tennis page.',
-}
-
-const byTerm = (a: Term, b: Term) => a.term.localeCompare(b.term)
+import { Sources } from './Sources'
 
 /** Group ids double as deep links, e.g. #/glossary/group-matches. */
 const groupId = (c: Term['category']) => `group-${c.toLowerCase()}`
 
+/** Accent- and case-insensitive, so "oeillet" finds "œillet" and "tension" finds "tensión". */
+const fold = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/œ/g, 'oe')
+    .replace(/æ/g, 'ae')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+
 export function GlossaryPage({ focusId }: { focusId?: string }) {
+  const t = useT()
+  const lang = useLang()
+  const { glossary } = useContent()
   const [query, setQuery] = useState('')
   useScrollTo(focusId)
 
-  const q = query.trim().toLowerCase()
+  const q = fold(query.trim())
   const shown = q
-    ? glossary.filter((t) =>
-        [t.term, t.definition, t.details ?? '', ...t.aliases].some((s) => s.toLowerCase().includes(q)),
-      )
+    ? glossary.filter((x) => [x.term, x.definition, x.details ?? '', ...x.aliases].some((s) => fold(s).includes(q)))
     : glossary
+  const collator = new Intl.Collator(localeOf(lang))
+  const byTerm = (a: Term, b: Term) => collator.compare(a.term, b.term)
 
   return (
     <div className="layout layout--reference">
       <aside className="sidebar">
-        <nav className="step-list step-list--scroll" aria-label="Glossary">
+        <nav className="step-list step-list--scroll" aria-label={t('glossary.title')}>
           {TERM_CATEGORIES.map((c) => {
-            const terms = shown.filter((t) => t.category === c).sort(byTerm)
+            const terms = shown.filter((x) => x.category === c).sort(byTerm)
             if (terms.length === 0) return null
             return (
               <div key={c} className="step-list__group">
-                <p className="step-list__heading">{c}</p>
+                <p className="step-list__heading">{t(`cat.${c}`)}</p>
                 <ol>
-                  {terms.map((t) => (
-                    <li key={t.id}>
+                  {terms.map((x) => (
+                    <li key={x.id}>
                       <a
-                        href={`#/glossary/${t.id}`}
-                        className={`step-list__item step-list__item--compact${t.id === focusId ? ' is-current' : ''}`}
-                        aria-current={t.id === focusId ? 'location' : undefined}
+                        href={`#/glossary/${x.id}`}
+                        className={`step-list__item step-list__item--compact${x.id === focusId ? ' is-current' : ''}`}
+                        aria-current={x.id === focusId ? 'location' : undefined}
                       >
-                        <span className="step-list__title">{t.term}</span>
+                        <span className="step-list__title">{x.term}</span>
                       </a>
                     </li>
                   ))}
@@ -59,79 +65,70 @@ export function GlossaryPage({ focusId }: { focusId?: string }) {
 
       <main className="content">
         <header className="page-intro">
-          <h2>Glossary</h2>
-          <p>Stringing and tennis terms. Underlined words anywhere on the site link here.</p>
+          <h2>{t('glossary.title')}</h2>
+          <p>{t('glossary.intro')}</p>
         </header>
 
         <label className="field glossary-search">
-          <span>Find a term</span>
+          <span>{t('glossary.find')}</span>
           <input
             type="search"
-            placeholder="e.g. grommet, gauge, walkover"
+            placeholder={t('glossary.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
 
-        {shown.length === 0 && <p className="empty">No terms match “{query}”.</p>}
+        {shown.length === 0 && <p className="empty">{t('glossary.noMatch', { query })}</p>}
 
         {TERM_CATEGORIES.map((c) => {
-          const terms = shown.filter((t) => t.category === c).sort(byTerm)
+          const terms = shown.filter((x) => x.category === c).sort(byTerm)
           if (terms.length === 0) return null
           return (
             <section key={c} id={groupId(c)} className="glossary-group" aria-labelledby={`${groupId(c)}-title`}>
               <h3 id={`${groupId(c)}-title`} className="section-title">
-                {c} <span className="section-title__blurb">· {BLURBS[c]}</span>
+                {t(`cat.${c}`)} <span className="section-title__blurb">· {t(`cat.blurb.${c}`)}</span>
               </h3>
               <dl className="glossary">
-                {terms.map((t) => (
-                  <TermEntry key={t.id} term={t} focused={t.id === focusId} />
+                {terms.map((x) => (
+                  <TermEntry key={x.id} term={x} focused={x.id === focusId} />
                 ))}
               </dl>
             </section>
           )
         })}
 
-        <details className="sources">
-          <summary>Sources</summary>
-          <ol>
-            {glossarySources.map((s) => (
-              <li key={s.url}>
-                <a href={s.url} target="_blank" rel="noopener noreferrer">
-                  {s.title}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </details>
+        <Sources sources={glossarySources} />
       </main>
     </div>
   )
 }
 
-function TermEntry({ term: t, focused }: { term: Term; focused: boolean }) {
+function TermEntry({ term: x, focused }: { term: Term; focused: boolean }) {
+  const t = useT()
+  const { targets, mentionsOf } = useLinks()
   const seen = new Set<string>()
-  const related = (t.related ?? []).flatMap((id) => {
+  const related = (x.related ?? []).flatMap((id) => {
     const target = targets.get(id)
     return target ? [{ title: target.title, href: target.href }] : []
   })
   const relatedHrefs = new Set(related.map((r) => r.href))
-  const usedIn = mentionsOf(t.id).filter((m) => !relatedHrefs.has(m.href))
+  const usedIn = mentionsOf(x.id).filter((m) => !relatedHrefs.has(m.href))
 
   return (
-    <div id={t.id} className={`glossary__entry${focused ? ' is-focused' : ''}`}>
-      <dt>{t.term}</dt>
+    <div id={x.id} className={`glossary__entry${focused ? ' is-focused' : ''}`}>
+      <dt>{x.term}</dt>
       <dd>
         <p>
-          <Linked text={t.definition} seen={seen} self={t.id} />
+          <Linked text={x.definition} seen={seen} self={x.id} />
         </p>
-        {t.details && (
+        {x.details && (
           <p className="glossary__details">
-            <Linked text={t.details} seen={seen} self={t.id} />
+            <Linked text={x.details} seen={seen} self={x.id} />
           </p>
         )}
-        <MentionChips label="See also:" items={related} />
-        <MentionChips label="Used in:" items={usedIn} />
+        <MentionChips label={t('related.seeAlso')} items={related} />
+        <MentionChips label={t('related.usedIn')} items={usedIn} />
       </dd>
     </div>
   )

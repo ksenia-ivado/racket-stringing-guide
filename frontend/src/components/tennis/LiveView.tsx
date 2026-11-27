@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiEnabled, getTennis, type MatchStatus, type TennisSnapshot } from '../../api/client'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { roundName, useLang, useT, type UiKey } from '../../i18n'
 import { ago, type DrawFilter } from './format'
 import { DrawToggle, MatchGroups, TournamentCard } from './Matches'
 
@@ -14,17 +15,19 @@ interface Filters {
 
 const DEFAULT_FILTERS: Filters = { draw: 'all', status: 'all', tournament: 'all', round: 'all', player: '' }
 
-const STATUS_OPTIONS: { value: Filters['status']; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'live', label: 'Live' },
-  { value: 'completed', label: 'Results' },
-  { value: 'scheduled', label: 'Upcoming' },
+const STATUS_OPTIONS: { value: Filters['status']; label: UiKey }[] = [
+  { value: 'all', label: 'filters.all' },
+  { value: 'live', label: 'filters.live' },
+  { value: 'completed', label: 'filters.results' },
+  { value: 'scheduled', label: 'filters.upcoming' },
 ]
 
 const REFRESH_MS = 2 * 60 * 1000
 
 /** What is on now: current tournaments, refreshed every couple of minutes. */
 export function LiveView() {
+  const t = useT()
+  const lang = useLang()
   const [data, setData] = useState<TennisSnapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [stored, setStored] = useLocalStorage<Filters>('tennisFilters', DEFAULT_FILTERS)
@@ -63,7 +66,7 @@ export function LiveView() {
   }, [])
 
   if (!data) {
-    return <p className="empty">{error ? `Could not load tennis data: ${error}` : 'Loading tournaments…'}</p>
+    return <p className="empty">{error ? t('live.loadError', { error }) : t('live.loading')}</p>
   }
 
   // Each filter narrows the options of the next, and a stale choice falls back to "all".
@@ -90,19 +93,17 @@ export function LiveView() {
 
   return (
     <>
-      <p className="view-meta">
-        Updated {ago(data.updated_at, now)} · data from {data.source}
-      </p>
-      {data.stale && <p className="notice">The data source is not responding, so this is the last data we got.</p>}
+      <p className="view-meta">{t('live.updated', { ago: ago(data.updated_at, now, lang), source: data.source })}</p>
+      {data.stale && <p className="notice">{t('live.stale')}</p>}
       {!apiEnabled && snapshotAgeHours > 2 && (
-        <p className="notice">This snapshot is {Math.round(snapshotAgeHours)} hours old; scores may have moved on.</p>
+        <p className="notice">{t('live.old', { hours: Math.round(snapshotAgeHours) })}</p>
       )}
-      {error && <p className="notice">Refresh failed ({error}). Showing the last data loaded.</p>}
+      {error && <p className="notice">{t('live.refreshFailed', { error })}</p>}
 
-      <div className="filters" role="search" aria-label="Filter matches">
+      <div className="filters" role="search" aria-label={t('filters.aria')}>
         <DrawToggle value={filters.draw} onChange={(draw) => setFilters({ draw })} />
 
-        <div className="segmented" role="radiogroup" aria-label="Match status">
+        <div className="segmented" role="radiogroup" aria-label={t('filters.statusAria')}>
           {STATUS_OPTIONS.map((o) => (
             <button
               key={o.value}
@@ -112,15 +113,15 @@ export function LiveView() {
               className={`segmented__option${filters.status === o.value ? ' is-active' : ''}`}
               onClick={() => setFilters({ status: o.value })}
             >
-              {o.label} <span className="count">{statusCount(o.value)}</span>
+              {t(o.label)} <span className="count">{statusCount(o.value)}</span>
             </button>
           ))}
         </div>
 
         <label className="field">
-          <span>Tournament</span>
+          <span>{t('filters.tournament')}</span>
           <select value={tournament} onChange={(e) => setFilters({ tournament: e.target.value })}>
-            <option value="all">All tournaments</option>
+            <option value="all">{t('filters.allTournaments')}</option>
             {tournaments.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -130,22 +131,22 @@ export function LiveView() {
         </label>
 
         <label className="field">
-          <span>Round</span>
+          <span>{t('filters.round')}</span>
           <select value={round} onChange={(e) => setFilters({ round: e.target.value })}>
-            <option value="all">All rounds</option>
+            <option value="all">{t('filters.allRounds')}</option>
             {rounds.map(([r]) => (
               <option key={r} value={r}>
-                {r}
+                {roundName(t, r)}
               </option>
             ))}
           </select>
         </label>
 
         <label className="field field--grow">
-          <span>Player</span>
+          <span>{t('filters.player')}</span>
           <input
             type="search"
-            placeholder="Search by name"
+            placeholder={t('filters.playerPlaceholder')}
             value={filters.player}
             onChange={(e) => setFilters({ player: e.target.value })}
           />
@@ -153,14 +154,14 @@ export function LiveView() {
 
         {filtered && (
           <button type="button" className="link-button" onClick={() => setStored(DEFAULT_FILTERS)}>
-            Clear filters
+            {t('filters.clear')}
           </button>
         )}
       </div>
 
       {tournaments.length === 0 ? (
         <p className="empty">
-          No ATP or WTA singles tournaments are on right now. Past results are under <a href="#history">History</a>.
+          {t('live.none')} <a href="#history">{t('live.noneLink')}</a>.
         </p>
       ) : (
         <>
@@ -177,14 +178,14 @@ export function LiveView() {
           </div>
 
           <h3 className="section-title">
-            Matches <span className="count">{visible.length}</span>
+            {t('matches.title')} <span className="count">{visible.length}</span>
           </h3>
           {visible.length === 0 ? (
             <p className="empty">
-              No matches fit these filters.{' '}
+              {t('matches.none')}{' '}
               {filtered && (
                 <button type="button" className="link-button" onClick={() => setStored(DEFAULT_FILTERS)}>
-                  Clear filters
+                  {t('filters.clear')}
                 </button>
               )}
             </p>

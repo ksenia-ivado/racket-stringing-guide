@@ -213,8 +213,8 @@ const measureString: Scene = {
       g.line(MID + 1, yr, MID + 0.2, yr + 0.8, 3)
       if (t >= 46) {
         const half = `${total / 2} ${unit}`
-        g.text(`Mains ${half}`, 28, yl - 7, 3, 3.8, 'center')
-        g.text(`Crosses ${half}`, 68, yr + 3, 3, 3.8, 'center')
+        g.text(`${g.tr('Mains')} ${half}`, 28, yl - 7, 3, 3.8, 'center')
+        g.text(`${g.tr('Crosses')} ${half}`, 68, yr + 3, 3, 3.8, 'center')
       }
     }
   },

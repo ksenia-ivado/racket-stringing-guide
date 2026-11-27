@@ -7,9 +7,12 @@ import { TechniquesPage } from './components/TechniquesPage'
 import { TermTooltip } from './components/TermTooltip'
 import { ToolsPage } from './components/ToolsPage'
 import { HeaderLink, Topbar } from './components/Topbar'
+import { LangToggle } from './components/LangToggle'
 import { UnitsToggle } from './components/UnitsToggle'
-import { steps, totalMinutes } from './data/steps'
+import { totalMinutes } from './data/steps'
 import { useLocalStorage } from './hooks/useLocalStorage'
+import { LangProvider, useLanguage, useT, type Lang, type UiKey } from './i18n'
+import { useContent } from './i18n/content'
 import { UnitsProvider, defaultUnits, type Units } from './units'
 
 type Page = 'guide' | 'knots' | 'tools' | 'glossary'
@@ -34,11 +37,11 @@ function parseRoute(hash: string): { page: Page; id?: string } {
   return { page: 'guide' }
 }
 
-const TABS: { page: Page; href: string; label: string; short: string }[] = [
-  { page: 'guide', href: '#/', label: 'Step-by-step guide', short: 'Guide' },
-  { page: 'knots', href: '#/knots', label: 'Knots & techniques', short: 'Knots' },
-  { page: 'tools', href: '#/tools', label: 'Tools', short: 'Tools' },
-  { page: 'glossary', href: '#/glossary', label: 'Glossary', short: 'Terms' },
+const TABS: { page: Page; href: string; label: UiKey; short: UiKey }[] = [
+  { page: 'guide', href: '#/', label: 'tab.guide', short: 'tab.guide.short' },
+  { page: 'knots', href: '#/knots', label: 'tab.knots', short: 'tab.knots.short' },
+  { page: 'tools', href: '#/tools', label: 'tab.tools', short: 'tab.tools.short' },
+  { page: 'glossary', href: '#/glossary', label: 'tab.glossary', short: 'tab.glossary.short' },
 ]
 
 function useRoute() {
@@ -55,7 +58,23 @@ function useRoute() {
 }
 
 export default function App() {
+  const [lang, setLang] = useLanguage()
+  return (
+    <LangProvider value={lang}>
+      <Guide lang={lang} onLang={setLang} />
+    </LangProvider>
+  )
+}
+
+function Guide({ lang, onLang }: { lang: Lang; onLang: (lang: Lang) => void }) {
+  const t = useT()
+  const { steps } = useContent()
   const route = useRoute()
+
+  useEffect(() => {
+    document.title = t('title.guide')
+  }, [t])
+
   const [units, setUnits] = useLocalStorage<Units>('units', defaultUnits())
   const [storedIndex, setIndex] = useLocalStorage('currentStep', 0)
   const [completed, setCompleted] = useLocalStorage<string[]>('completedSteps', [])
@@ -71,7 +90,7 @@ export default function App() {
       setIndex(Math.min(Math.max(i, 0), steps.length - 1))
       window.scrollTo({ top: 0, behavior: 'smooth' })
     },
-    [setIndex],
+    [setIndex, steps.length],
   )
 
   // #/step/<id> (from "Used in" links) opens that step, then settles on #/.
@@ -81,7 +100,7 @@ export default function App() {
     const i = steps.findIndex((s) => s.id === stepId)
     if (i >= 0) goTo(i)
     window.location.replace('#/')
-  }, [stepId, goTo])
+  }, [stepId, goTo, steps])
 
   const openStep = (i: number) => {
     window.location.hash = '#/'
@@ -114,16 +133,23 @@ export default function App() {
   return (
     <UnitsProvider value={units}>
       <div className="app">
-        <Topbar subtitle={`${steps.length} steps · about ${totalMinutes} min`}>
-          <HeaderLink href={TENNIS_URL} label="Live" short="Live" live description="Live tennis scores" />
+        <Topbar subtitle={t('app.subtitle', { steps: steps.length, minutes: totalMinutes })}>
+          <HeaderLink
+            href={TENNIS_URL}
+            label={t('header.live')}
+            short={t('header.live')}
+            live
+            description={t('header.live.desc')}
+          />
           <UnitsToggle units={units} onChange={setUnits} />
+          <LangToggle lang={lang} onChange={onLang} />
         </Topbar>
         <TermTooltip />
 
         <div
           className="progress"
           role="progressbar"
-          aria-label="Steps completed"
+          aria-label={t('guide.progress')}
           aria-valuenow={progress}
           aria-valuemin={0}
           aria-valuemax={100}
@@ -131,7 +157,7 @@ export default function App() {
           <div className="progress__bar" style={{ width: `${progress}%` }} />
         </div>
 
-        <nav className="tabs" aria-label="Sections">
+        <nav className="tabs" aria-label={t('nav.sections')}>
           {TABS.map((tab) => (
             <a
               key={tab.page}
@@ -139,9 +165,9 @@ export default function App() {
               className={`tab${route.page === tab.page ? ' is-active' : ''}`}
               aria-current={route.page === tab.page ? 'page' : undefined}
             >
-              <span className="tab__long">{tab.label}</span>
+              <span className="tab__long">{t(tab.label)}</span>
               <span className="tab__short" aria-hidden="true">
-                {tab.short}
+                {t(tab.short)}
               </span>
             </a>
           ))}
@@ -158,12 +184,10 @@ export default function App() {
             <aside className="sidebar">
               <StepList steps={steps} currentIndex={index} completed={completed} onSelect={goTo} />
               <div className="sidebar__footer">
-                <span>
-                  {completed.length}/{steps.length} done
-                </span>
+                <span>{t('guide.done', { done: completed.length, total: steps.length })}</span>
                 {completed.length > 0 && (
                   <button type="button" className="link-button" onClick={reset}>
-                    Reset progress
+                    {t('guide.reset')}
                   </button>
                 )}
               </div>
@@ -179,7 +203,7 @@ export default function App() {
                 onPrev={() => goTo(index - 1)}
                 onNext={() => goTo(index + 1)}
               />
-              <p className="hint">Tip: use ← and → to move between steps.</p>
+              <p className="hint">{t('guide.hint')}</p>
             </main>
           </div>
         )}

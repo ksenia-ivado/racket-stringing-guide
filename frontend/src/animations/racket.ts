@@ -26,7 +26,9 @@ export function tensionLabel(lb: number, o: SceneOpts) {
 
 /** Tension readout in the top-left corner. */
 export function tensionText(g: Gfx, lb: number, o: SceneOpts) {
-  g.text(tensionLabel(lb, o), 2, 1.5, 3)
+  const label = tensionLabel(lb, o)
+  // Spanish and French write decimals with a comma: 8,5 kg.
+  g.text(g.lang === 'en' ? label : label.replace('.', ','), 2, 1.5, 3)
 }
 
 /** Caption in the top-left corner. */

@@ -1,6 +1,7 @@
 import { useEffect, useRef, type CSSProperties } from 'react'
 import { Gfx, H, RES, S, W } from '../animations/gfx'
 import type { Scene } from '../animations/racket'
+import { useLang, useT } from '../i18n'
 import { useUnits } from '../units'
 
 interface Props {
@@ -17,12 +18,15 @@ const FPS = 10
 export function PixelAnimation({ scene, command, label }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const metric = useUnits() === 'metric'
+  const lang = useLang()
+  const t = useT()
 
   useEffect(() => {
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
     if (!canvas || !ctx) return
     const g = new Gfx(ctx)
+    g.lang = lang
     const render = (frame: number) => {
       g.clear()
       scene.draw(g, frame % scene.loop, { metric })
@@ -56,7 +60,7 @@ export function PixelAnimation({ scene, command, label }: Props) {
       cancelAnimationFrame(raf)
       observer.disconnect()
     }
-  }, [scene, metric])
+  }, [scene, metric, lang])
 
   return (
     <figure className="crt">
@@ -67,7 +71,7 @@ export function PixelAnimation({ scene, command, label }: Props) {
           height={H * S * RES}
           className="crt__canvas"
           role="img"
-          aria-label={`Animation: ${label}`}
+          aria-label={t('anim.aria', { label })}
         />
       </div>
       <figcaption className="crt__caption" aria-hidden="true">

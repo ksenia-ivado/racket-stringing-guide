@@ -1,3 +1,4 @@
+import { useT } from '../i18n'
 import type { Step } from '../data/steps'
 
 interface Props {
@@ -8,8 +9,9 @@ interface Props {
 }
 
 export function StepList({ steps, currentIndex, completed, onSelect }: Props) {
+  const t = useT()
   return (
-    <nav className="step-list" aria-label="Steps">
+    <nav className="step-list" aria-label={t('steps.aria')}>
       <ol>
         {steps.map((step, i) => {
           const done = completed.includes(step.id)

@@ -1,8 +1,10 @@
 import { sceneFor } from '../animations/scenes'
 import type { Step } from '../data/steps'
-import { techniques } from '../data/techniques'
+import { useT } from '../i18n'
+import { useContent } from '../i18n/content'
 import { Linked } from './Linked'
 import { PixelAnimation } from './PixelAnimation'
+import { Sources } from './Sources'
 
 interface Props {
   step: Step
@@ -15,18 +17,18 @@ interface Props {
 }
 
 export function StepView({ step, index, total, done, onToggleDone, onPrev, onNext }: Props) {
+  const t = useT()
+  const { techniques } = useContent()
   // Each glossary term, tool or technique is linked once per step.
   const seen = new Set<string>()
   const isFirst = index === 0
   const isLast = index === total - 1
-  const related = techniques.filter((t) => step.related?.includes(t.id))
+  const related = techniques.filter((x) => step.related?.includes(x.id))
 
   return (
     <article className="step" aria-labelledby={`step-${step.id}`}>
       <header className="step__header">
-        <p className="step__eyebrow">
-          Step {index + 1} of {total} · about {step.minutes} min
-        </p>
+        <p className="step__eyebrow">{t('step.eyebrow', { n: index + 1, total, minutes: step.minutes })}</p>
         <h2 id={`step-${step.id}`}>{step.title}</h2>
         <p className="step__summary">
           <Linked text={step.summary} seen={seen} />
@@ -41,60 +43,53 @@ export function StepView({ step, index, total, done, onToggleDone, onPrev, onNex
 
       <ol className="step__instructions">
         {step.instructions.map((text) => (
-          <li key={text}><Linked text={text} seen={seen} /></li>
+          <li key={text}>
+            <Linked text={text} seen={seen} />
+          </li>
         ))}
       </ol>
 
       {step.warnings?.map((text) => (
         <aside key={text} className="callout callout--warning">
-          <strong>Warning</strong>
-          <p><Linked text={text} seen={seen} /></p>
+          <strong>{t('callout.warning')}</strong>
+          <p>
+            <Linked text={text} seen={seen} />
+          </p>
         </aside>
       ))}
 
       {step.tips?.map((text) => (
         <aside key={text} className="callout callout--tip">
-          <strong>Tip</strong>
-          <p><Linked text={text} seen={seen} /></p>
+          <strong>{t('callout.tip')}</strong>
+          <p>
+            <Linked text={text} seen={seen} />
+          </p>
         </aside>
       ))}
 
       {related.length > 0 && (
         <p className="related">
-          <span>See also:</span>
-          {related.map((t) => (
-            <a key={t.id} href={`#/knots/${t.id}`} className="chip">
-              {t.title}
+          <span>{t('related.seeAlso')}</span>
+          {related.map((x) => (
+            <a key={x.id} href={`#/knots/${x.id}`} className="chip">
+              {x.title}
             </a>
           ))}
         </p>
       )}
 
-      {step.sources && (
-        <details className="sources">
-          <summary>Sources</summary>
-          <ol>
-            {step.sources.map((src) => (
-              <li key={src.url}>
-                <a href={src.url} target="_blank" rel="noopener noreferrer">
-                  {src.title}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </details>
-      )}
+      <Sources sources={step.sources} />
 
       <footer className="step__footer">
         <button type="button" className="button button--ghost" onClick={onPrev} disabled={isFirst}>
-          ← Back
+          {t('step.back')}
         </button>
         <label className="step__done">
           <input type="checkbox" checked={done} onChange={onToggleDone} />
-          Mark as done
+          {t('step.markDone')}
         </label>
         <button type="button" className="button button--primary" onClick={onNext} disabled={isLast}>
-          Next →
+          {t('step.next')}
         </button>
       </footer>
     </article>

@@ -3,6 +3,9 @@
  * pixels, so lines and curves are drawn at 3x detail while keeping a crisp,
  * pixel-art look (the canvas is scaled up with image-rendering: pixelated).
  */
+import type { Lang } from '../i18n/types'
+import { SCENE_TEXT } from './sceneText'
+
 export const W = 96
 export const H = 54
 export const S = 3
@@ -27,6 +30,8 @@ export class Gfx {
   /** Translation in logical units, applied to everything drawn. */
   ox = 0
   oy = 0
+  /** Language for text drawn by scenes; English strings are translated via SCENE_TEXT. */
+  lang: Lang = 'en'
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx
@@ -139,7 +144,13 @@ export class Gfx {
   }
 
   /** Text, top-left anchored. `size` is the cap height in logical units. */
+  /** A scene phrase in the current language (English if there is no translation). */
+  tr(str: string) {
+    return SCENE_TEXT[this.lang]?.[str] ?? str
+  }
+
   text(str: string, x: number, y: number, s: Shade, size = 3.8, align: CanvasTextAlign = 'left') {
+    str = this.tr(str)
     const ctx = this.ctx
     ctx.font = `600 ${size * S * 1.3}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`
     ctx.textBaseline = 'top'

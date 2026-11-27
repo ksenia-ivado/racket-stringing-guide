@@ -1,42 +1,53 @@
 import type { Draw, MatchStatus, Tournament } from '../../api/client'
+import { localeOf, type Lang, type UiKey } from '../../i18n'
 
 export type DrawFilter = Draw | 'all'
 
-export const DRAW_LABEL: Record<Draw, string> = {
-  'mens-singles': "Men's singles",
-  'womens-singles': "Women's singles",
-}
-
-export const DRAW_OPTIONS: { value: DrawFilter; label: string }[] = [
-  { value: 'all', label: 'All singles' },
-  { value: 'mens-singles', label: 'Men' },
-  { value: 'womens-singles', label: 'Women' },
+export const DRAW_OPTIONS: { value: DrawFilter; label: UiKey }[] = [
+  { value: 'all', label: 'draw.all' },
+  { value: 'mens-singles', label: 'draw.men' },
+  { value: 'womens-singles', label: 'draw.women' },
 ]
 
 /** Within a round: live first, then upcoming, then results. */
 export const STATUS_RANK: Record<MatchStatus, number> = { live: 0, scheduled: 1, completed: 2 }
 
-const dayFormat = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' })
-export const timeFormat = new Intl.DateTimeFormat(undefined, {
-  weekday: 'short',
-  day: 'numeric',
-  month: 'short',
-  hour: '2-digit',
-  minute: '2-digit',
-})
-const relative = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' })
-
-/** 'YYYY-MM-DD' as a local date, so it does not shift a day in western time zones. */
-export function formatDay(iso: string) {
-  const [y, m, d] = iso.split('-').map(Number)
-  return dayFormat.format(new Date(y, m - 1, d))
+/** Intl formatters are costly to build, so keep one per language. */
+function cached<T>(make: (lang: Lang) => T) {
+  const cache = new Map<Lang, T>()
+  return (lang: Lang) => {
+    let v = cache.get(lang)
+    if (!v) cache.set(lang, (v = make(lang)))
+    return v
+  }
 }
 
-export function ago(iso: string, now: number) {
+const dayFormat = cached((lang) => new Intl.DateTimeFormat(localeOf(lang), { day: 'numeric', month: 'short' }))
+const timeFormat = cached(
+  (lang) =>
+    new Intl.DateTimeFormat(localeOf(lang), {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+)
+const relative = cached((lang) => new Intl.RelativeTimeFormat(localeOf(lang), { numeric: 'auto' }))
+
+/** 'YYYY-MM-DD' as a local date, so it does not shift a day in western time zones. */
+export function formatDay(iso: string, lang: Lang) {
+  const [y, m, d] = iso.split('-').map(Number)
+  return dayFormat(lang).format(new Date(y, m - 1, d))
+}
+
+export const formatTime = (iso: string, lang: Lang) => timeFormat(lang).format(new Date(iso))
+
+export function ago(iso: string, now: number, lang: Lang) {
   const minutes = Math.round((Date.parse(iso) - now) / 60000)
   return Math.abs(minutes) < 60
-    ? relative.format(minutes, 'minute')
-    : relative.format(Math.round(minutes / 60), 'hour')
+    ? relative(lang).format(minutes, 'minute')
+    : relative(lang).format(Math.round(minutes / 60), 'hour')
 }
 
 /** CSS modifier for a tour badge: atp, wta or atpwta. */

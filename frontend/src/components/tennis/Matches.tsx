@@ -1,10 +1,12 @@
 import type { Draw, DrawStats, Match, Tournament } from '../../api/client'
-import { DRAW_LABEL, DRAW_OPTIONS, STATUS_RANK, formatDay, timeFormat, tourClass, type DrawFilter } from './format'
+import { roundName, statusName, useLang, useT, type T } from '../../i18n'
+import { DRAW_OPTIONS, STATUS_RANK, formatDay, formatTime, tourClass, type DrawFilter } from './format'
 
 /** Men / women / all toggle, shared by the live and history views. */
 export function DrawToggle({ value, onChange }: { value: DrawFilter; onChange: (d: DrawFilter) => void }) {
+  const tr = useT()
   return (
-    <div className="segmented" role="radiogroup" aria-label="Draw">
+    <div className="segmented" role="radiogroup" aria-label={tr('draw.aria')}>
       {DRAW_OPTIONS.map((o) => (
         <button
           key={o.value}
@@ -14,7 +16,7 @@ export function DrawToggle({ value, onChange }: { value: DrawFilter; onChange: (
           className={`segmented__option${value === o.value ? ' is-active' : ''}`}
           onClick={() => onChange(o.value)}
         >
-          {o.label}
+          {tr(o.label)}
         </button>
       ))}
     </div>
@@ -22,10 +24,11 @@ export function DrawToggle({ value, onChange }: { value: DrawFilter; onChange: (
 }
 
 export function TourBadges({ tournament: t }: { tournament: Tournament }) {
+  const tr = useT()
   return (
     <>
       <span className={`badge badge--${tourClass(t)}`}>{t.tour}</span>
-      {t.major && <span className="badge badge--major">Grand Slam</span>}
+      {t.major && <span className="badge badge--major">{tr('badge.slam')}</span>}
     </>
   )
 }
@@ -38,6 +41,8 @@ interface CardProps {
 }
 
 export function TournamentCard({ tournament: t, draws, selected, onSelect }: CardProps) {
+  const tr = useT()
+  const lang = useLang()
   return (
     <article className={`t-card${selected ? ' is-selected' : ''}`}>
       <header>
@@ -47,15 +52,15 @@ export function TournamentCard({ tournament: t, draws, selected, onSelect }: Car
         <h3>{t.name}</h3>
         <p className="t-card__meta">
           {t.location && `${t.location} · `}
-          {formatDay(t.start_date)} – {formatDay(t.end_date)}
+          {formatDay(t.start_date, lang)} – {formatDay(t.end_date, lang)}
         </p>
       </header>
 
       {draws.map((d) => (
-        <section key={d.draw} className="t-draw" aria-label={DRAW_LABEL[d.draw]}>
-          {draws.length > 1 && <p className="t-draw__name">{DRAW_LABEL[d.draw]}</p>}
+        <section key={d.draw} className="t-draw" aria-label={tr(`draw.${d.draw}`)}>
+          {draws.length > 1 && <p className="t-draw__name">{tr(`draw.${d.draw}`)}</p>}
           {d.matches === 0 ? (
-            <p className="t-draw__status">Draw not published yet</p>
+            <p className="t-draw__status">{tr('card.drawNotOut')}</p>
           ) : (
             <>
               <div className="meter" aria-hidden="true">
@@ -63,33 +68,33 @@ export function TournamentCard({ tournament: t, draws, selected, onSelect }: Car
               </div>
               <dl className="stats">
                 <div>
-                  <dt>Played</dt>
+                  <dt>{tr('card.played')}</dt>
                   <dd>
                     {d.completed}
                     <span>/{d.matches}</span>
                   </dd>
                 </div>
                 <div>
-                  <dt>Live</dt>
+                  <dt>{tr('card.live')}</dt>
                   <dd className={d.live ? 'is-live' : undefined}>{d.live}</dd>
                 </div>
                 <div>
-                  <dt>To play</dt>
+                  <dt>{tr('card.toPlay')}</dt>
                   <dd>{d.scheduled}</dd>
                 </div>
                 <div>
-                  <dt>Retired</dt>
+                  <dt>{tr('card.retired')}</dt>
                   <dd>{d.retirements}</dd>
                 </div>
               </dl>
               <p className="t-draw__status">
                 {d.champion ? (
                   <>
-                    Champion: <strong>{d.champion}</strong>
+                    {tr('card.champion')} <strong>{d.champion}</strong>
                   </>
                 ) : d.current_round ? (
                   <>
-                    Now playing: <strong>{d.current_round}</strong>
+                    {tr('card.nowPlaying')} <strong>{roundName(tr, d.current_round)}</strong>
                   </>
                 ) : null}
               </p>
@@ -99,7 +104,7 @@ export function TournamentCard({ tournament: t, draws, selected, onSelect }: Car
       ))}
 
       <button type="button" className="chip" onClick={onSelect} aria-pressed={selected}>
-        {selected ? 'Show all tournaments' : 'Only this tournament'}
+        {tr(selected ? 'card.showAll' : 'card.onlyThis')}
       </button>
     </article>
   )
@@ -115,6 +120,8 @@ interface GroupsProps {
 }
 
 export function MatchGroups({ tournaments, matches, showDraw, showDates }: GroupsProps) {
+  const tr = useT()
+  const lang = useLang()
   const byTournament = new Map<string, Match[]>()
   for (const m of matches) {
     const list = byTournament.get(m.tournament_id)
@@ -136,7 +143,7 @@ export function MatchGroups({ tournaments, matches, showDraw, showDates }: Group
           <section key={t.id} className="match-group" aria-label={t.name}>
             <h4 className="match-group__title">
               {t.name}
-              {showDates && <span className="match-group__dates"> · {formatDay(t.start_date)}</span>}
+              {showDates && <span className="match-group__dates"> · {formatDay(t.start_date, lang)}</span>}
             </h4>
             {rounds.map((key) => {
               const [draw, , round] = key.split('|') as [Draw, string, string]
@@ -149,8 +156,8 @@ export function MatchGroups({ tournaments, matches, showDraw, showDates }: Group
               return (
                 <div key={key} className="round">
                   <p className="round__title">
-                    {showDraw && `${DRAW_LABEL[draw]} · `}
-                    {round}
+                    {showDraw && `${tr(`draw.${draw}`)} · `}
+                    {roundName(tr, round)}
                   </p>
                   <ul className="matches">
                     {list.map((m) => (
@@ -167,16 +174,18 @@ export function MatchGroups({ tournaments, matches, showDraw, showDates }: Group
   )
 }
 
-function statusLabel(m: Match) {
-  if (m.status === 'live') return 'Live'
-  if (m.status === 'completed') return m.status_detail || 'Final'
-  return m.start ? timeFormat.format(new Date(m.start)) : 'Time TBD'
+function statusLabel(m: Match, tr: T, lang: Parameters<typeof formatTime>[1]) {
+  if (m.status === 'live') return tr('match.live')
+  if (m.status === 'completed') return statusName(tr, m.status_detail || 'Final')
+  return m.start ? formatTime(m.start, lang) : tr('match.timeTbd')
 }
 
 export function MatchRow({ match: m }: { match: Match }) {
+  const tr = useT()
+  const lang = useLang()
   return (
     <li className={`match match--${m.status}`}>
-      <span className={`pill pill--${m.status}`}>{statusLabel(m)}</span>
+      <span className={`pill pill--${m.status}`}>{statusLabel(m, tr, lang)}</span>
       <div className="match__players">
         {m.players.map((p, i) => {
           const other = m.players[1 - i]

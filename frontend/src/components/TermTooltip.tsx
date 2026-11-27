@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useT, type UiKey } from '../i18n'
 
 interface Tip {
   el: HTMLAnchorElement
@@ -8,10 +9,10 @@ interface Tip {
   href: string
 }
 
-const KIND_LABEL: Record<string, { label: string; open: string }> = {
-  term: { label: 'Glossary', open: 'Open in glossary' },
-  tool: { label: 'Tool', open: 'Open in tools' },
-  technique: { label: 'Knot & technique', open: 'Open technique' },
+const KIND_LABEL: Record<string, { label: UiKey; open: UiKey }> = {
+  term: { label: 'tip.term', open: 'tip.open.term' },
+  tool: { label: 'tip.tool', open: 'tip.open.tool' },
+  technique: { label: 'tip.technique', open: 'tip.open.technique' },
 }
 
 const TOOLTIP_ID = 'term-tooltip'
@@ -29,6 +30,7 @@ export function TermTooltip() {
   const boxRef = useRef<HTMLDivElement>(null)
   const timer = useRef<number | undefined>(undefined)
   const pointer = useRef('mouse')
+  const t = useT()
   /** When the last tap or click started; focus caused by it is not keyboard focus. */
   const pressedAt = useRef(0)
 
@@ -144,11 +146,11 @@ export function TermTooltip() {
   const kind = KIND_LABEL[tip.kind] ?? KIND_LABEL.term
   return (
     <div ref={boxRef} id={TOOLTIP_ID} role="tooltip" className="term-tooltip">
-      <p className="term-tooltip__kind">{kind.label}</p>
+      <p className="term-tooltip__kind">{t(kind.label)}</p>
       <p className="term-tooltip__title">{tip.title}</p>
       <p className="term-tooltip__hint">{tip.hint}</p>
       <a className="term-tooltip__open" href={tip.href}>
-        {kind.open} →
+        {t(kind.open)} →
       </a>
     </div>
   )

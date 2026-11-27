@@ -1,4 +1,4 @@
-import { segment } from '../data/links'
+import { useLinks } from '../data/links'
 import { fmt, useUnits } from '../units'
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
  */
 export function Linked({ text, seen, self }: Props) {
   const units = useUnits()
+  const { segment } = useLinks()
   return (
     <>
       {segment(fmt(text, units), seen, self).map((s, i) =>
