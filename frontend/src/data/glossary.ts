@@ -1,4 +1,4 @@
-import type { Source } from './techniques'
+import type { Source } from './sources'
 
 export type TermCategory = 'Racket' | 'Strings' | 'Stringing' | 'Matches'
 
@@ -172,6 +172,7 @@ export const glossary: Term[] = [
     category: 'Strings',
     aliases: ['natural gut'],
     definition: 'The original string, made from animal intestine. The most elastic and best at holding tension, but expensive and sensitive to moisture.',
+    details: 'Check it for flaws before you start, string it at a slower machine speed, and let it twist the way it wants to go.',
     related: ['multifilament', 'hybrid'],
   },
   {
@@ -184,7 +185,40 @@ export const glossary: Term[] = [
     related: ['two-piece', 'polyester', 'natural-gut'],
   },
 
+  {
+    id: 'monofilament',
+    term: 'Monofilament',
+    category: 'Strings',
+    aliases: ['monofilament', 'monofilaments'],
+    definition: 'A string with a single solid core, such as polyester. Its cut ends can be sharp, so flatten them after trimming.',
+    related: ['polyester', 'multifilament'],
+  },
+  {
+    id: 'string-bed-stiffness',
+    term: 'String bed stiffness',
+    category: 'Strings',
+    aliases: ['string bed stiffness', 'stiffer'],
+    definition: 'How firm the strung racket feels. Straight strings and short pulls keep it high, which gives more control.',
+    related: ['string-bed', 'tension'],
+  },
+
   /* ---------- Stringing ---------- */
+  {
+    id: 'turntable',
+    term: 'Turntable',
+    category: 'Stringing',
+    aliases: ['turntable'],
+    definition: 'The part of the machine the racket is mounted on. It rotates so you can reach each string; lock it while tying knots.',
+    related: ['stringing-machine', 'mounting-supports'],
+  },
+  {
+    id: 'clamp-base',
+    term: 'Clamp base',
+    category: 'Stringing',
+    aliases: ['clamp base', 'clamp bases'],
+    definition: 'What holds a fixed clamp in place on the machine. When letting go of a string, release the base first, then the clamp.',
+    related: ['clamps'],
+  },
   {
     id: 'two-piece',
     term: 'Two-piece stringing',

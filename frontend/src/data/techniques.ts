@@ -1,7 +1,6 @@
-export interface Source {
-  title: string
-  url: string
-}
+import { HEAD_PARNELL, type Source } from './sources'
+
+export type { Source } from './sources'
 
 export interface Technique {
   id: string
@@ -14,10 +13,6 @@ export interface Technique {
   sources: Source[]
 }
 
-const HEAD_GUIDE: Source = {
-  title: 'HEAD: How to string a tennis racquet',
-  url: 'https://www.head.com/en_US/rs/stories/how-to-string-a-tennis-racquet',
-}
 const HOLABIRD_FRICTION: Source = {
   title: 'Holabird Sports: Can pulling cross strings through too quickly damage a racquet?',
   url: 'https://www.holabirdsports.com/blogs/news/ask-the-stringer-can-pulling-cross-strings-through-too-quickly-damage-a-racquet',
@@ -49,18 +44,20 @@ export const techniques: Technique[] = [
     title: 'Parnell knot',
     summary: 'A compact tie-off knot, devised by master stringer Richard Parnell, that protects the anchor string.',
     instructions: [
+      'Lock the turntable so the racket cannot move.',
       'Bring the string out through the tie-off hole and take it around the anchor string.',
       'Make a half hitch around the anchor, but leave a small loop instead of pulling it tight.',
-      'Take the end around the anchor a second time, then pass it up through that first loop from underneath.',
-      'Cinch the knot down against the grommet. With the loop left a little open, it tightens easily by hand.',
-      'Trim the tail to about {{6 mm|¼ in}} and press the knot flat so it has no sharp edges.',
+      'Make a second half hitch through that loop: around the anchor again and up through the loop from underneath.',
+      'Pull it tight with a starting clamp on the tail, so the string outside the frame is tight too. Release the clamp base first, then the clamp.',
+      'Cut the tail short. With polyester, flatten the end with the back of the cutters; natural gut does not need it.',
     ],
     tips: [
       'What matters is that the end finishes through the first loop you made. If it does, the knot holds.',
-      'It is one of the two knots most used in professional stringing. For the exact hand movements, watch Richard Parnell tie it himself.',
+      'Leave the tag end lying straight along the string it is tied to, so every knot looks the same.',
+      'HEAD calls it one of the two most used knots in professional stringing, and one of the two official knots at Wimbledon. For the exact hand movements, watch Richard Parnell tie it himself.',
     ],
     sources: [
-      HEAD_GUIDE,
+      HEAD_PARNELL,
       {
         title: 'Tennisnerd: Interview with Richard Parnell',
         url: 'https://www.tennisnerd.net/tennisinstruction/interview-with-richard-parnell/15342',
@@ -84,13 +81,14 @@ export const techniques: Technique[] = [
     ],
     tips: [
       'With slippery strings or large grommet holes, loop it one extra time for more bulk.',
-      'Or skip the knot: hold the first cross with a starting clamp, tension a few crosses, then tie a normal tie-off knot at the start.',
+      'Or skip the knot: hold the first cross with a starting clamp, tension a few crosses, then tie a normal tie-off knot at the start. HEAD recommends this, so every knot can be a Parnell knot.',
     ],
     sources: [
       {
         title: 'Holabird Sports: How can I stop my starting knot pulling back through the grommet?',
         url: 'https://www.holabirdsports.com/blogs/news/ask-the-stringer-how-can-i-stop-my-cross-string-starting-knot-from-pulling-back-through-the-grommet',
       },
+      HEAD_PARNELL,
       {
         title: 'WonderHowTo: Start crosses with a starting knot',
         url: 'https://tennis-lessons.wonderhowto.com/how-to/start-crosses-tennis-racket-with-starting-knot-243998',
@@ -135,17 +133,17 @@ export const techniques: Technique[] = [
     instructions: [
       'When you reach the last main or the last cross, raise the tension. About 10% is common: at {{25 kg|55 lb}} that is about {{27.5 kg|60 lb}}.',
       'Tension and clamp the string as usual.',
-      'Tie it off with a double half hitch or a Parnell knot.',
+      'Tie it off with a Parnell knot or a double half hitch, using a starting clamp to pull the knot tight.',
     ],
     tips: [
-      'Knots lose some tension as they seat, and the extra makes up for it. Advice varies: HEAD suggests as much as 20%.',
+      'Knots lose some tension as they seat, and the extra makes up for it. Advice varies: HEAD recommends 20%, so the last strings are as tight as possible.',
     ],
     sources: [
       {
         title: 'PlayTennis: How to string a tennis racket',
         url: 'https://playtennis.sg/online-tennis-education/how-to-string-a-tennis-racket',
       },
-      HEAD_GUIDE,
+      HEAD_PARNELL,
     ],
   },
 ]

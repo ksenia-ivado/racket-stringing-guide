@@ -70,6 +70,21 @@ export function StepView({ step, index, total, done, onToggleDone, onPrev, onNex
         </p>
       )}
 
+      {step.sources && (
+        <details className="sources">
+          <summary>Sources</summary>
+          <ol>
+            {step.sources.map((src) => (
+              <li key={src.url}>
+                <a href={src.url} target="_blank" rel="noopener noreferrer">
+                  {src.title}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
+
       <footer className="step__footer">
         <button type="button" className="button button--ghost" onClick={onPrev} disabled={isFirst}>
           ← Back

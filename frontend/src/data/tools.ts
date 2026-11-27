@@ -1,4 +1,4 @@
-import type { Source } from './techniques'
+import { HEAD_PARNELL, type Source } from './sources'
 
 export interface Tool {
   id: string
@@ -35,9 +35,12 @@ export const tools: Tool[] = [
     details: [
       'Every machine has three parts: mounting supports that hold the frame, clamps that hold strings at tension, and a tension head that does the pulling.',
       'Machines differ mostly in how they pull. A drop-weight machine uses a weighted bar that you level by hand. A crank (lockout) machine pulls with a spring and locks once it reaches the tension. An electronic constant-pull machine keeps pulling as the string stretches, which is the most consistent.',
+      'The racket sits on a turntable, so you can turn it to reach each string. Lock the turntable while you tie knots.',
+      'Many machines let you set the pulling speed: slower for natural gut, to protect it, and faster for monofilaments such as polyester.',
     ],
     tips: ['Check the tension setting before every job. It is the easiest thing to get wrong.'],
     essential: true,
+    sources: [HEAD_PARNELL],
   },
   {
     id: 'tension-head',
@@ -59,9 +62,12 @@ export const tools: Tool[] = [
     summary: 'Hold the frame at the head, throat and sides so it keeps its shape under tension.',
     details: [
       'Two-point systems hold the head and throat; six-point systems add supports at the sides. More points spread the load on the frame more evenly.',
-      'Supports should touch the frame firmly without squeezing it.',
+      'Mount the throat first, then the head. The head and throat supports should just rest against the frame; the side supports should be firm.',
+      'Stringing the mains compresses the frame and the crosses bring it back into shape, so the supports must hold it without distorting it.',
     ],
+    tips: ['When you finish, the racket should come out as easily as it went in. If it does, the frame has kept its shape.'],
     essential: true,
+    sources: [HEAD_PARNELL],
   },
   {
     id: 'clamps',
@@ -72,9 +78,14 @@ export const tools: Tool[] = [
     details: [
       'Fixed clamps are mounted on the machine and lock onto a single string. Flying clamps are not attached to anything and hold two neighbouring strings together.',
       'Clamp close to the frame. The further the clamp is from the frame, the more tension is lost when it releases.',
+      'Set the clamp to the string’s gauge so it grips the string without crushing it.',
     ],
-    tips: ['Never release the tension head before the clamp is set.'],
+    tips: [
+      'Never release the tension head before the clamp is set.',
+      'When you let go, release the clamp base first, then the clamp.',
+    ],
     essential: true,
+    sources: [HEAD_PARNELL],
   },
   {
     id: 'starting-clamp',
@@ -84,9 +95,11 @@ export const tools: Tool[] = [
     summary: 'A small separate clamp that holds a string outside the frame.',
     details: [
       'Used to start the crosses without a starting knot, to back up a clamp that slips, and to hold the last string while you tie it off.',
+      'It also pulls a knot tight: clamp it on the tail and pull up the tension, so the string outside the frame is tight too.',
     ],
-    essential: false,
-    sources: [HOLABIRD_START, PLAYTENNIS],
+    tips: ['Put a protective pad between the clamp and the frame, especially on a new racket, so the metal does not mark it.'],
+    essential: true,
+    sources: [HEAD_PARNELL, HOLABIRD_START, PLAYTENNIS],
   },
   {
     id: 'awl',
@@ -110,8 +123,10 @@ export const tools: Tool[] = [
     details: [
       'Cut each end at a sharp angle so it feeds through the grommets.',
       'Flush cutters trim knot tails close and clean.',
+      'With polyester and other monofilaments, flatten the cut end with the back of the cutters so it cannot catch a finger.',
     ],
     essential: true,
+    sources: [HEAD_PARNELL],
   },
   {
     id: 'pliers',

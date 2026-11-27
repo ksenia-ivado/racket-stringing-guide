@@ -229,7 +229,8 @@ const installCenterMains: Scene = {
 const stringMains: Scene = {
   loop: 100,
   still: 40,
-  draw: (g, t, o) => mainsRun(g, t, o, [6, 9, 5, 10, 4, 11, 3, 12, 2, 13, 1, 14, 0, 15], [7, 8], 3, 3, 6),
+  // Three on one side, three on the other, then alternating (Richard Parnell's order).
+  draw: (g, t, o) => mainsRun(g, t, o, [6, 5, 4, 9, 10, 11, 3, 12, 2, 13, 1, 14, 0, 15], [7, 8], 3, 3, 6),
 }
 
 const TIE_MAINS: [number, number][] = [
