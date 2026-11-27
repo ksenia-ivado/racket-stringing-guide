@@ -1,4 +1,4 @@
-# String Your Racket
+# StringTheory
 
 A step-by-step guide to stringing a tennis racket.
 

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app import tennis
 from app.config import settings
 
-app = FastAPI(title="Racket Stringing API", version=settings.version)
+app = FastAPI(title="StringTheory API", version=settings.version)
 
 app.add_middleware(
     CORSMiddleware,

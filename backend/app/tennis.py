@@ -267,7 +267,7 @@ async def fetch_scoreboard(
 
 
 async def _fetch(dates: str | None = None) -> tuple[list[Tournament], list[Match]]:
-    async with httpx2.AsyncClient(headers={"User-Agent": "racket-stringing-guide"}) as client:
+    async with httpx2.AsyncClient(headers={"User-Agent": "stringtheory"}) as client:
         results = await asyncio.gather(*(fetch_scoreboard(client, tour, dates) for tour in TOURS))
     return parse_scoreboards(dict(zip(TOURS, results, strict=True)))
 

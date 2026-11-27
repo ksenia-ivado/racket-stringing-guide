@@ -19,7 +19,7 @@ export function Topbar({ subtitle, children }: Props) {
             <path d="M18 20l8 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
           </svg>
           <div>
-            <h1>String Your Racket</h1>
+            <h1>StringTheory</h1>
             <p className="topbar__meta">{subtitle}</p>
           </div>
         </a>

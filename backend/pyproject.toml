@@ -1,7 +1,7 @@
 [project]
 name = "racket-stringing-api"
 version = "0.1.0"
-description = "Backend API for the racket stringing guide"
+description = "Backend API for StringTheory, a racket stringing guide"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
