@@ -11,5 +11,9 @@ class Settings(BaseSettings):
     # only matters when the frontend is served from a different origin).
     cors_origins: list[str] = ["http://localhost:5173"]
 
+    # Tennis data: ESPN's free, keyless scoreboard API.
+    espn_base_url: str = "https://site.api.espn.com/apis/site/v2/sports/tennis"
+    tennis_cache_seconds: int = 300
+
 
 settings = Settings()

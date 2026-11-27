@@ -1,8 +1,13 @@
-name: Deploy frontend to GitHub Pages
+name: Deploy to GitHub Pages
 
+# GitHub Pages only serves static files, so the Python backend cannot run there.
+# Instead, this workflow runs the backend's tennis exporter and publishes its
+# output as data/tennis.json next to the frontend. The schedule keeps it fresh.
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -17,19 +22,39 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Install backend
+        working-directory: backend
+        run: uv sync --locked
+      - name: Test backend
+        if: github.event_name != 'schedule'
+        working-directory: backend
+        run: uv run ruff check . && uv run pytest -q
+      - name: Export tennis snapshot
+        working-directory: backend
+        # On a push, an ESPN outage should not block shipping the guide; the page
+        # then says the data is unavailable. On the schedule, fail and keep the
+        # previous deploy (and its data) live instead.
+        continue-on-error: ${{ github.event_name != 'schedule' }}
+        run: uv run python -m app.export_tennis ../frontend/public/data/tennis.json
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run lint
+          npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
       - uses: actions/upload-pages-artifact@v3

@@ -4,17 +4,28 @@ import { ApiStatus } from './components/ApiStatus'
 import { StepList } from './components/StepList'
 import { StepView } from './components/StepView'
 import { TechniquesPage } from './components/TechniquesPage'
+import { TennisPage } from './components/TennisPage'
 import { ThemeToggle } from './components/ThemeToggle'
 import { UnitsToggle } from './components/UnitsToggle'
 import { steps, totalMinutes } from './data/steps'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { UnitsProvider, defaultUnits, type Units } from './units'
 
-/** Hash routes, so deep links work on GitHub Pages: #/ (guide), #/knots, #/knots/<id>. */
-function parseRoute(hash: string) {
+type Page = 'guide' | 'knots' | 'tennis'
+
+/** Hash routes, so deep links work on GitHub Pages: #/ (guide), #/knots, #/knots/<id>, #/tennis. */
+function parseRoute(hash: string): { page: Page; id?: string } {
   const [, page, id] = hash.replace(/^#/, '').split('/')
-  return page === 'knots' ? { page: 'knots' as const, id: id || undefined } : { page: 'guide' as const }
+  if (page === 'knots') return { page: 'knots', id: id || undefined }
+  if (page === 'tennis') return { page: 'tennis' }
+  return { page: 'guide' }
 }
+
+const TABS: { page: Page; href: string; label: string; short: string }[] = [
+  { page: 'guide', href: '#/', label: 'Step-by-step guide', short: 'Guide' },
+  { page: 'knots', href: '#/knots', label: 'Knots & techniques', short: 'Knots' },
+  { page: 'tennis', href: '#/tennis', label: 'Live tennis', short: 'Tennis' },
+]
 
 function useRoute() {
   const [hash, setHash] = useState(() => window.location.hash)
@@ -115,15 +126,24 @@ export default function App() {
         </div>
 
         <nav className="tabs" aria-label="Sections">
-          <a href="#/" className={`tab${route.page === 'guide' ? ' is-active' : ''}`} aria-current={route.page === 'guide' ? 'page' : undefined}>
-            Step-by-step guide
-          </a>
-          <a href="#/knots" className={`tab${route.page === 'knots' ? ' is-active' : ''}`} aria-current={route.page === 'knots' ? 'page' : undefined}>
-            Knots &amp; techniques
-          </a>
+          {TABS.map((tab) => (
+            <a
+              key={tab.page}
+              href={tab.href}
+              className={`tab${route.page === tab.page ? ' is-active' : ''}`}
+              aria-current={route.page === tab.page ? 'page' : undefined}
+            >
+              <span className="tab__long">{tab.label}</span>
+              <span className="tab__short" aria-hidden="true">
+                {tab.short}
+              </span>
+            </a>
+          ))}
         </nav>
 
-        {route.page === 'knots' ? (
+        {route.page === 'tennis' ? (
+          <TennisPage />
+        ) : route.page === 'knots' ? (
           <TechniquesPage focusId={route.id} onOpenStep={openStep} />
         ) : (
           <div className="layout">

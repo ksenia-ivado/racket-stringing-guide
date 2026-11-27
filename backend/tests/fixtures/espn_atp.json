@@ -1,0 +1,17 @@
+{
+ "events": [
+  {
+   "id": "865-2026",
+   "date": "2026-12-08T05:00Z",
+   "endDate": "2026-12-14T04:59Z",
+   "major": false,
+   "name": "Next Gen ATP Finals presented by PIF",
+   "shortName": "Next Gen ATP Finals presented by PIF",
+   "season": {
+    "year": 2026,
+    "type": 2
+   },
+   "groupings": []
+  }
+ ]
+}

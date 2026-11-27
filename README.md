@@ -3,7 +3,7 @@
 A step-by-step guide to stringing a tennis racket.
 
 - **frontend/**: React + TypeScript (Vite). The guide itself; step content lives in `src/data/steps.ts`.
-- **backend/**: Python + FastAPI (uv). Minimal for now: just `GET /api/health`.
+- **backend/**: Python + FastAPI (uv). `GET /api/health`, and `GET /api/tennis` for current ATP/WTA tournaments with men's and women's singles matches (see below).
 
 ## Requirements
 
@@ -29,3 +29,11 @@ Other commands: `make test`, `make lint`, `make build`.
 - Write measurements in content as `{{metric|imperial}}`, e.g. `about {{6 m|20 ft}}`. The Metric/Imperial toggle in the header picks one (defaulting from the browser locale) and the animations follow it.
 - Each step and technique has a looping pixel animation (`src/animations/`): scenes are drawn on a 96x54 grid at 3x detail, one scene per id in `scenes.ts` and `techniqueScenes.ts`.
 - To add an endpoint, add a route to the `api` router in `backend/app/main.py` and a function in `frontend/src/api/client.ts`.
+
+## Live tennis data
+
+The **Live tennis** tab (`#/tennis`) shows current ATP and WTA tournaments, singles only, with per-draw stats and a filterable match list (draw, status, tournament, round, player).
+
+- **Source:** ESPN's public scoreboard API (`site.api.espn.com/.../tennis/{atp,wta}/scoreboard`). Free and keyless, but unofficial and undocumented, so it may change without notice. Parsing lives in `backend/app/tennis.py` and skips anything it does not recognise.
+- **API:** `GET /api/tennis` takes optional filters: `draw` (`mens-singles` | `womens-singles`), `status` (`live` | `completed` | `scheduled`), `tournament` (id), `round` (e.g. `Quarterfinal`) and `player` (part of a name). Responses are cached for 5 minutes (`APP_TENNIS_CACHE_SECONDS`); if ESPN is down, the last good copy is served with `"stale": true`.
+- **On GitHub Pages** there is no server, so the deploy workflow runs `python -m app.export_tennis` every 30 minutes and publishes the snapshot as `data/tennis.json`. The frontend reads that file when no backend is configured, and filters it in the browser. GitHub pauses scheduled workflows after 60 days without repository activity; re-enable it from the Actions tab if that happens.
