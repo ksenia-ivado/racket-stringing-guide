@@ -109,6 +109,19 @@ export function TechniquesPage({ focusId, onOpenStep }: Props) {
                         ))}
                       </p>
                     )}
+
+                    <details className="sources">
+                      <summary>Sources</summary>
+                      <ol>
+                        {t.sources.map((s) => (
+                          <li key={s.url}>
+                            <a href={s.url} target="_blank" rel="noopener noreferrer">
+                              {s.title}
+                            </a>
+                          </li>
+                        ))}
+                      </ol>
+                    </details>
                   </article>
                 )
               })}

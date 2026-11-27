@@ -29,10 +29,49 @@ function frameBand(g: Gfx, y: number, holes: number[]) {
   }
 }
 
-/* ---------- Double half hitch ---------- */
+/* ---------- Knots tied around the anchor ---------- */
 
 const ANCHOR_Y = 33
-/** Path of the tie-off string: out of the hole, two half hitches, then the tail. */
+
+/** Frame, grommets and the anchor: the string already running along the outside of the frame. */
+function anchorScene(g: Gfx, name = 'anchor') {
+  frameBand(g, 36, [24, 52, 72])
+  g.line(24, 37, 24, ANCHOR_Y, 2, 3)
+  g.line(24, ANCHOR_Y, 72, ANCHOR_Y, 2, 3)
+  g.line(72, ANCHOR_Y, 72, 37, 2, 3)
+  g.text(name, 66, 27.5, 2, 3.2, 'center')
+}
+
+/** Squeeze a loose knot path towards its centre, keeping the start (the hole) and moving the tail. */
+function tighten(path: Pt[], cx: number, tail: Pt): Pt[] {
+  return path.map(([x, y], i) =>
+    i === 0 ? [x, y] : i === path.length - 1 ? tail : [cx + (x - cx) * 0.42, ANCHOR_Y + (y - ANCHOR_Y) * 0.32],
+  )
+}
+
+/**
+ * Draw a knot along `path`, `p` of the way along, eased towards `tight` by `q`.
+ * `under` lists segments (by start index) that pass behind the anchor.
+ */
+function knotPath(g: Gfx, path: Pt[], tight: Pt[], under: number[], p: number, q: number, t: number, pulling: boolean) {
+  const pts = path.map((pt, i) => lerp(pt, tight[i], q))
+  g.polyline(pts, p, 3, 3)
+  // Put the anchor back on top where the string goes underneath it
+  for (const i of under) {
+    const [ax, ay] = pts[i]
+    const [bx, by] = pts[i + 1]
+    const xi = ax + ((bx - ax) * (ANCHOR_Y - ay)) / (by - ay)
+    g.clearRect(xi - 1.6, ANCHOR_Y - 0.67, 3.2, 1.7)
+    g.line(xi - 1.6, ANCHOR_Y, xi + 1.6, ANCHOR_Y, 2, 3)
+  }
+  if (pulling && t % 2 === 0) {
+    const [x, y] = pts[pts.length - 1]
+    g.line(x, y, x - 2, y - 0.5, 3, 2)
+    g.line(x, y, x - 0.5, y - 2, 3, 2)
+  }
+}
+
+/** Double half hitch: out of the hole, two half hitches, then the tail. */
 const HITCH: Pt[] = [
   [52, 36],
   [52, 22],
@@ -50,86 +89,122 @@ const HITCH: Pt[] = [
   [37.5, 23],
   [22, 8],
 ]
-const HITCH_TIGHT: Pt[] = HITCH.map(([x, y], i) =>
-  i === 0 ? [x, y] : i === HITCH.length - 1 ? [30, 19] : [44 + (x - 44) * 0.42, ANCHOR_Y + (y - ANCHOR_Y) * 0.32],
-)
-/** Segments (start index) where the string passes under the anchor. */
-const UNDER = [3, 9]
+const HITCH_TIGHT = tighten(HITCH, 44, [30, 19])
 
 const doubleHalfHitch: Scene = {
   loop: 100,
   still: 90,
   draw(g, t) {
-    frameBand(g, 36, [24, 52, 72])
-    // Anchor: the string already running along the outside of the frame
-    g.line(24, 37, 24, ANCHOR_Y, 2, 3)
-    g.line(24, ANCHOR_Y, 72, ANCHOR_Y, 2, 3)
-    g.line(72, ANCHOR_Y, 72, 37, 2, 3)
-    g.text('anchor', 66, 27.5, 2, 3.2, 'center')
-
-    const q = ease(seg(t, 62, 74))
-    const pts = HITCH.map((p, i) => lerp(p, HITCH_TIGHT[i], q))
-    g.polyline(pts, seg(t, 4, 58), 3, 3)
-    // Put the anchor back on top where the string goes underneath it
-    for (const i of UNDER) {
-      const [ax, ay] = pts[i]
-      const [bx, by] = pts[i + 1]
-      const xi = ax + ((bx - ax) * (ANCHOR_Y - ay)) / (by - ay)
-      g.clearRect(xi - 1.6, ANCHOR_Y - 0.67, 3.2, 1.7)
-      g.line(xi - 1.6, ANCHOR_Y, xi + 1.6, ANCHOR_Y, 2, 3)
-    }
-    if (t >= 62 && t < 76 && t % 2 === 0) {
-      const [x, y] = pts[pts.length - 1]
-      g.line(x, y, x - 2, y - 0.5, 3, 2)
-      g.line(x, y, x - 0.5, y - 2, 3, 2)
-    }
+    anchorScene(g)
+    knotPath(g, HITCH, HITCH_TIGHT, [3, 9], seg(t, 4, 58), ease(seg(t, 62, 74)), t, t >= 62 && t < 76)
     label(g, t < 32 ? '1st half hitch' : t < 60 ? '2nd half hitch' : t < 76 ? 'Pull tight' : 'Double half hitch')
+  },
+}
+
+/**
+ * Parnell knot: a half hitch with its loop left open, then around the anchor
+ * again and up through that first loop from underneath.
+ */
+const PARNELL: Pt[] = [
+  [52, 36],
+  [52, 24],
+  [47, 19],
+  [44, 26],
+  [45, 37.5],
+  [49, 38],
+  [50, 30],
+  [47.5, 25.5],
+  [41, 22],
+  [38.5, 29],
+  [39.5, 38],
+  [44, 38.5],
+  [46.5, 31],
+  [46.5, 27.5],
+  [34, 12],
+]
+const PARNELL_TIGHT = tighten(PARNELL, 46, [38, 21])
+/** Where the open loop of the first half hitch sits. */
+const FIRST_LOOP: Pt = [47.3, 27.8]
+
+const parnellKnot: Scene = {
+  loop: 104,
+  still: 94,
+  draw(g, t) {
+    anchorScene(g)
+    const p = 0.5 * seg(t, 4, 28) + 0.5 * seg(t, 34, 60)
+    const q = ease(seg(t, 64, 76))
+    // Point out the loop that the end has to come back through
+    if (t >= 28 && t < 62 && t % 4 < 3) g.ellipse(FIRST_LOOP[0], FIRST_LOOP[1], 3.2, 3.2, 1, 2)
+    knotPath(g, PARNELL, PARNELL_TIGHT, [3, 9], p, q, t, t >= 64 && t < 78)
+    label(
+      g,
+      t < 30 ? 'Half hitch, loop left open' : t < 62 ? 'Around, up through the loop' : t < 78 ? 'Cinch it down' : 'Parnell knot',
+    )
   },
 }
 
 /* ---------- Starting knot ---------- */
 
-const jumboKnot: Scene = {
-  loop: 84,
-  still: 72,
+const startingKnot: Scene = {
+  loop: 90,
+  still: 78,
   draw(g, t, o) {
-    const HOLE = 48
-    const BAND = 30
-    const SCRAP_Y = 16
-    frameBand(g, BAND, [HOLE])
-    g.text('inside', 92, 46, 1, 3.2, 'right')
-    g.text('outside', 92, 20, 1, 3.2, 'right')
+    const HOLE = 52
+    anchorScene(g, 'main')
 
-    const d = 7 * ease(seg(t, 48, 60))
-    // String coming up from the string bed, through the hole
-    g.line(HOLE, 54, HOLE, BAND + 2.4, 3, 3)
-    g.oy = d
-    if (t < 16) g.line(HOLE, BAND - d, HOLE, 8, 3, 3)
-    else g.line(HOLE, BAND - d, HOLE, SCRAP_Y + 3.4, 3, 3)
-    if (t >= 8) {
-      const slide = (1 - ease(seg(t, 8, 15))) * -30
-      g.line(40 + slide, SCRAP_Y, 56 + slide, SCRAP_Y, 2, 3)
-    }
-    // Two wraps around the scrap, then the tail
-    const wraps: [number, number, number][] = [
-      [45.5, 16, 30],
-      [50.5, 30, 44],
-    ]
-    for (const [x, a, b] of wraps) {
-      if (t < a) continue
-      g.arc(x, SCRAP_Y, 2.4, 3.4, Math.PI / 2, Math.PI / 2 + Math.PI * 2 * seg(t, a, b), 3, 3)
-    }
-    if (t >= 44) g.line(52, SCRAP_Y - 2, 52 + 6 * seg(t, 44, 48), SCRAP_Y - 2 - 8 * seg(t, 44, 48), 3, 3)
-    g.oy = 0
-
-    if (t >= 48 && t < 62) {
-      if (t % 2 === 0) {
-        g.line(HOLE, 52, HOLE - 1.5, 50.5, 3, 2)
-        g.line(HOLE, 52, HOLE + 1.5, 50.5, 3, 2)
-      }
-      tensionText(g, seg(t, 48, 60) * 55, o)
+    // Cross string coming up from inside the frame, out through the hole
+    g.line(HOLE, 54, HOLE, 40.6, 3, 3)
+    const out = seg(t, 0, 8)
+    if (t < 10) {
+      g.line(HOLE, 36, HOLE, 36 - 22 * out, 3, 3)
     } else {
-      label(g, t < 8 ? 'Out through the hole' : t < 16 ? 'Add a scrap of string' : t < 48 ? 'Tie around the scrap' : 'Too big to pull through')
+      g.line(HOLE, 36, 51, 28, 3, 3)
+    }
+    // Two loops around the main, shrinking as the knot is pulled tight
+    const tight = ease(seg(t, 50, 62))
+    const rx = 2 - 0.6 * tight
+    const ry = 4 - 1.6 * tight
+    const loops: [number, number, number][] = [
+      [48.5, 10, 22],
+      [44.5, 22, 34],
+    ]
+    for (const [x, a, b] of loops) {
+      if (t < a) continue
+      g.arc(x + tight * (48 - x) * 0.4, ANCHOR_Y, rx, ry, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * seg(t, a, b), 3, 3)
+    }
+    // Then back through the double loop and out as the tail
+    if (t >= 36) {
+      const k = seg(t, 36, 46)
+      g.polyline(
+        [
+          [42, 29],
+          [47, 31],
+          [52, 30.5],
+          [60, 24],
+        ],
+        k,
+        3,
+        3,
+      )
+    }
+
+    if (t >= 50 && t < 64) {
+      if (t % 2 === 0) {
+        g.line(HOLE, 53, HOLE - 1.5, 51.5, 3, 2)
+        g.line(HOLE, 53, HOLE + 1.5, 51.5, 3, 2)
+      }
+      tensionText(g, seg(t, 50, 62) * 55, o)
+    } else {
+      label(
+        g,
+        t < 10
+          ? 'Out through the hole'
+          : t < 36
+            ? 'Loop twice around the main'
+            : t < 50
+              ? 'Back through the double loop'
+              : 'Bulky: it cannot slip back',
+      )
     }
   },
 }
@@ -216,7 +291,7 @@ const pullSlack: Scene = {
       g.line(X1 + 1, Y, X1 + 4, Y, 3, 2)
     }
     if (t >= 34 && t < 56) tensionText(g, seg(t, 34, 54) * 55, o)
-    else label(g, t < 32 ? 'Pull the slack by hand' : 'Straight pull, no burn')
+    else label(g, t < 32 ? 'Pull the slack in a wide U' : 'Then the head adds tension')
   },
 }
 
@@ -247,7 +322,8 @@ const tieOffTension: Scene = {
 
 const scenes: Record<string, Scene> = {
   'double-half-hitch': doubleHalfHitch,
-  'starting-knot': jumboKnot,
+  'parnell-knot': parnellKnot,
+  'starting-knot': startingKnot,
   'weave-one-ahead': weaveOneAhead,
   'pull-slack': pullSlack,
   'tie-off-tension': tieOffTension,

@@ -1,3 +1,8 @@
+export interface Source {
+  title: string
+  url: string
+}
+
 export interface Technique {
   id: string
   kind: 'knot' | 'technique'
@@ -5,6 +10,17 @@ export interface Technique {
   summary: string
   instructions: string[]
   tips?: string[]
+  /** Where the content comes from. Shown quietly at the bottom of each entry. */
+  sources: Source[]
+}
+
+const HEAD_GUIDE: Source = {
+  title: 'HEAD: How to string a tennis racquet',
+  url: 'https://www.head.com/en_US/rs/stories/how-to-string-a-tennis-racquet',
+}
+const HOLABIRD_FRICTION: Source = {
+  title: 'Holabird Sports: Can pulling cross strings through too quickly damage a racquet?',
+  url: 'https://www.holabirdsports.com/blogs/news/ask-the-stringer-can-pulling-cross-strings-through-too-quickly-damage-a-racquet',
 }
 
 /** Measurements are written as {{metric|imperial}}; see fmt() in src/units.ts. */
@@ -13,7 +29,7 @@ export const techniques: Technique[] = [
     id: 'double-half-hitch',
     kind: 'knot',
     title: 'Double half hitch',
-    summary: 'The standard tie-off knot: two half hitches around the anchor string.',
+    summary: 'The most common tie-off knot: two half hitches around the anchor string.',
     instructions: [
       'Bring the string out through the tie-off hole, leaving about {{20 cm|8 in}} of tail.',
       'Find the anchor: the string already running along the outside of the frame next to the hole.',
@@ -22,21 +38,64 @@ export const techniques: Technique[] = [
       'Pull the knot tight against the frame with pliers, then trim the tail to about {{6 mm|¼ in}}.',
     ],
     tips: ['Keep tension on the string while you tie. A loose knot lets the last string go slack.'],
+    sources: [
+      { title: 'Racquet stringing guide (SlideShare)', url: 'https://pt.slideshare.net/guest40adfff/ss-4135420' },
+      { title: 'Wikipedia: Two half-hitches', url: 'https://en.wikipedia.org/wiki/Two_half-hitches' },
+    ],
+  },
+  {
+    id: 'parnell-knot',
+    kind: 'knot',
+    title: 'Parnell knot',
+    summary: 'A compact tie-off knot, devised by master stringer Richard Parnell, that protects the anchor string.',
+    instructions: [
+      'Bring the string out through the tie-off hole and take it around the anchor string.',
+      'Make a half hitch around the anchor, but leave a small loop instead of pulling it tight.',
+      'Take the end around the anchor a second time, then pass it up through that first loop from underneath.',
+      'Cinch the knot down against the grommet. With the loop left a little open, it tightens easily by hand.',
+      'Trim the tail to about {{6 mm|¼ in}} and press the knot flat so it has no sharp edges.',
+    ],
+    tips: [
+      'What matters is that the end finishes through the first loop you made. If it does, the knot holds.',
+      'It is one of the two knots most used in professional stringing. For the exact hand movements, watch Richard Parnell tie it himself.',
+    ],
+    sources: [
+      HEAD_GUIDE,
+      {
+        title: 'Tennisnerd: Interview with Richard Parnell',
+        url: 'https://www.tennisnerd.net/tennisinstruction/interview-with-richard-parnell/15342',
+      },
+      { title: 'Richard Parnell: video tutorials', url: 'http://www.parnellknot.com/video-tutorials/' },
+      { title: 'Talk Tennis forum: Parnell knot', url: 'https://tt.tennis-warehouse.com/index.php?threads/parnell-knot.751797/' },
+      { title: 'Tennis Crown: Tennis string knot types', url: 'https://tenniscrown.com/tennis-string-knot-types/' },
+    ],
   },
   {
     id: 'starting-knot',
     kind: 'knot',
-    title: 'Starting knot (jumbo knot)',
-    summary: 'A bulky knot at the start of the crosses that cannot pull back through the grommet.',
+    title: 'Starting knot',
+    summary: 'A bulky knot at the start of the crosses that will not pull back through the grommet.',
     instructions: [
-      'Cut a scrap of string about {{10 cm|4 in}} long.',
-      'Bring the start of the cross string out through the first cross hole.',
-      'Tie a double half hitch around the scrap, close to the frame.',
-      'Pull it tight and trim the scrap ends to about {{6 mm|¼ in}}.',
-      'Pull on the string from inside the frame. The knot seats against the grommet and holds.',
+      'Bring the start of the cross string out through the first cross hole, leaving about {{20 cm|8 in}} of tail.',
+      'Loop the end twice around the neighbouring main, holding the loops open with a finger.',
+      'Thread the end back through the double loop.',
+      'Pull it tight from both sides so the knot is as compact and bulky as possible. Tensioning the first cross tightens it further.',
+      'Trim the tail to about {{6 mm|¼ in}}.',
     ],
     tips: [
-      'If you have a starting clamp, you can use it outside the frame to hold the first cross instead, then tie a normal knot later.',
+      'With slippery strings or large grommet holes, loop it one extra time for more bulk.',
+      'Or skip the knot: hold the first cross with a starting clamp, tension a few crosses, then tie a normal tie-off knot at the start.',
+    ],
+    sources: [
+      {
+        title: 'Holabird Sports: How can I stop my starting knot pulling back through the grommet?',
+        url: 'https://www.holabirdsports.com/blogs/news/ask-the-stringer-how-can-i-stop-my-cross-string-starting-knot-from-pulling-back-through-the-grommet',
+      },
+      {
+        title: 'WonderHowTo: Start crosses with a starting knot',
+        url: 'https://tennis-lessons.wonderhowto.com/how-to/start-crosses-tennis-racket-with-starting-knot-243998',
+      },
+      { title: 'Racquet stringing guide (SlideShare)', url: 'https://pt.slideshare.net/guest40adfff/ss-4135420' },
     ],
   },
   {
@@ -45,36 +104,48 @@ export const techniques: Technique[] = [
     title: 'Weave one ahead',
     summary: 'Weave the next cross before you tension the current one.',
     instructions: [
-      'Weave the next cross in the opposite pattern to the last one.',
+      'Weave the next cross in the opposite pattern to the last one, leaving a loop long enough to pull tension on.',
       'Only then tension the previous cross, clamp it, and release the clamp before it.',
       'Repeat: there is always one woven but untensioned cross ahead of the one you pull.',
     ],
-    tips: ['The cross ahead holds the mains in line, so pulling the one behind it does not drag them out of place.'],
+    tips: ['It cuts friction between the strings and makes the crosses easier to weave.'],
+    sources: [HOLABIRD_FRICTION],
   },
   {
     id: 'pull-slack',
     kind: 'technique',
-    title: 'Pull the slack by hand',
-    summary: 'Pull the string through slowly and straight before the tension head takes over.',
+    title: 'Pull the slack in a wide U',
+    summary: 'Pull each cross through without dragging it across the mains.',
     instructions: [
-      'After feeding a string, pull all the slack through by hand.',
-      'Pull slowly, in a straight line, without sawing the string back and forth.',
+      'After weaving a cross, push it into a wide U across the string bed with your other hand.',
+      'Hold it there while you pull the slack through.',
       'Only then put it in the tension head. The head should add tension, not drag string through.',
     ],
     tips: [
-      'Dragging a long cross quickly over the mains causes friction burn: heat and small nicks that weaken the mains, especially with polyester.',
+      'Dragging a cross straight across the mains causes friction burn: it notches the mains and shortens the life of the string job.',
+      'With stiff polyester, a piece of tape on the fingertip that holds the U saves your skin.',
     ],
+    sources: [HOLABIRD_FRICTION],
   },
   {
     id: 'tie-off-tension',
     kind: 'technique',
     title: 'Extra tension at tie-offs',
-    summary: 'Add about 10% to the last string before you tie it off.',
+    summary: 'Add some tension to the last string before you tie it off.',
     instructions: [
-      'When you reach the last main or the last cross, raise the tension by about 10%. At {{25 kg|55 lb}} that is about {{27.5 kg|60 lb}}.',
+      'When you reach the last main or the last cross, raise the tension. About 10% is common: at {{25 kg|55 lb}} that is about {{27.5 kg|60 lb}}.',
       'Tension and clamp the string as usual.',
-      'Tie it off with a double half hitch.',
+      'Tie it off with a double half hitch or a Parnell knot.',
     ],
-    tips: ['Knots lose some tension as they seat. The extra 10% makes up for it, so the last string matches the rest.'],
+    tips: [
+      'Knots lose some tension as they seat, and the extra makes up for it. Advice varies: HEAD suggests as much as 20%.',
+    ],
+    sources: [
+      {
+        title: 'PlayTennis: How to string a tennis racket',
+        url: 'https://playtennis.sg/online-tennis-education/how-to-string-a-tennis-racket',
+      },
+      HEAD_GUIDE,
+    ],
   },
 ]

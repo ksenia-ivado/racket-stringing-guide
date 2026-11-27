@@ -7,14 +7,14 @@
   --border: #2a2f3a;
   --text: #e8eaef;
   --text-muted: #9aa1ae;
-  --accent: #c8f04a; /* tennis-ball green */
-  --accent-contrast: #14170c;
-  --tip-bg: rgba(200, 240, 74, 0.08);
-  --tip-border: rgba(200, 240, 74, 0.35);
+  --accent: #5cff8d; /* terminal green, same as the animations */
+  --accent-contrast: #03100a;
+  --tip-bg: rgba(92, 255, 141, 0.07);
+  --tip-border: rgba(92, 255, 141, 0.35);
   --warn-bg: rgba(255, 145, 77, 0.1);
   --warn-border: rgba(255, 145, 77, 0.45);
   --warn-text: #ffb27f;
-  --ok: #5ad17a;
+  --ok: #5cff8d;
   --bad: #ef6b6b;
   --radius: 10px;
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -28,14 +28,14 @@
   --border: #dde1e7;
   --text: #1a1d23;
   --text-muted: #5d6573;
-  --accent: #4d7c0f;
+  --accent: #087a33; /* terminal green, darkened for contrast on white */
   --accent-contrast: #ffffff;
-  --tip-bg: rgba(77, 124, 15, 0.07);
-  --tip-border: rgba(77, 124, 15, 0.35);
+  --tip-bg: rgba(8, 122, 51, 0.07);
+  --tip-border: rgba(8, 122, 51, 0.35);
   --warn-bg: rgba(217, 99, 22, 0.08);
   --warn-border: rgba(217, 99, 22, 0.4);
   --warn-text: #a84a0c;
-  --ok: #1f9d4c;
+  --ok: #087a33;
   --bad: #c93636;
 }
 
@@ -274,6 +274,89 @@ a.step-list__item {
 
 .tab__short {
   display: none;
+}
+
+/* Sources: deliberately quiet, tucked under each entry */
+.sources {
+  margin-top: 20px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.sources summary {
+  width: fit-content;
+  cursor: pointer;
+  list-style: none;
+}
+
+.sources summary::-webkit-details-marker {
+  display: none;
+}
+
+.sources summary::after {
+  content: ' +';
+}
+
+.sources[open] summary::after {
+  content: ' −';
+}
+
+.sources[open] {
+  opacity: 1;
+}
+
+.sources ol {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.sources a {
+  color: inherit;
+}
+
+.sources a:hover {
+  color: var(--accent);
+}
+
+/* ---------- Header link to the other page ---------- */
+.header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header-link__short {
+  display: none;
+}
+
+.header-link:hover {
+  border-color: var(--accent);
+}
+
+.header-link__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.topbar__brand a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
 }
 
 /* ---------- Live tennis page ---------- */
@@ -538,7 +621,7 @@ a.step-list__item {
 
 .pill--live {
   background: var(--ok);
-  color: #04130a;
+  color: var(--accent-contrast);
   animation: pulse 1.6s ease-in-out infinite;
 }
 
@@ -813,7 +896,7 @@ a.step-list__item {
 /* ---------- 8-bit CRT animation (always dark: it is a screen) ---------- */
 .crt {
   --phosphor: #5cff8d;
-  --phosphor-dim: #22b24c;
+  --phosphor-dim: #2fc45e;
   margin: 24px 0 0;
   padding: 12px 12px 10px;
   background: #010603;
@@ -837,7 +920,7 @@ a.step-list__item {
   height: auto;
   aspect-ratio: 96 / 54;
   image-rendering: pixelated;
-  filter: drop-shadow(0 0 1.5px rgba(141, 255, 176, 0.3));
+  filter: drop-shadow(0 0 1.5px rgba(92, 255, 141, 0.3));
 }
 
 /* A light touch of scanlines and vignette, kept faint so detail stays sharp */
@@ -1030,6 +1113,18 @@ a.step-list__item {
 
   .tab__long {
     display: none;
+  }
+
+  .header-link__long {
+    display: none;
+  }
+
+  .header-link__short {
+    display: inline;
+  }
+
+  .header-link {
+    padding: 7px 9px;
   }
 
   .tab__short {

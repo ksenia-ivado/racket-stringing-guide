@@ -108,7 +108,6 @@ export const steps: Step[] = [
   },
   {
     id: 'string-mains',
-    related: ['pull-slack'],
     title: 'String the remaining mains',
     summary: 'Work outwards, alternating sides, one main at a time.',
     minutes: 20,
@@ -127,19 +126,19 @@ export const steps: Step[] = [
   },
   {
     id: 'tie-off-mains',
-    related: ['double-half-hitch', 'tie-off-tension'],
+    related: ['double-half-hitch', 'parnell-knot', 'tie-off-tension'],
     title: 'Tie off the mains',
     summary: 'Secure each end with a knot at the designated tie-off hole.',
     minutes: 5,
     instructions: [
       'Feed the last main end out through the tie-off hole in your pattern.',
       'Tension the last main and clamp it.',
-      'Tie a double half hitch around the anchor string, next to the grommet.',
+      'Tie a double half hitch (or a Parnell knot) around the anchor string, next to the grommet.',
       'Pull the knot tight with pliers, or tension the tag end lightly to seat it.',
       'Repeat for the other side, then trim the tails to about {{6 mm|¼ in}}.',
     ],
     tips: [
-      'Many stringers add 10% tension to the last string before tying off, to make up for the tension lost in the knot.',
+      'Many stringers add about 10% tension to the last string before tying off, to make up for the tension lost in the knot.',
     ],
   },
   {
@@ -155,7 +154,7 @@ export const steps: Step[] = [
       'Pull the slack through and tension the first cross.',
     ],
     tips: [
-      'Some stringers pull the first cross at about 10% more tension to make up for the starting knot.',
+      'If the starting knot slips through the grommet, loop it once more for bulk, or hold the first cross with a starting clamp instead.',
     ],
   },
   {
@@ -171,19 +170,19 @@ export const steps: Step[] = [
       'Keep going until you reach the last cross hole at the throat.',
     ],
     tips: [
-      'Pull the string through slowly and in a straight line. Fast pulls cause friction burn, which weakens the mains.',
+      'Hold each cross in a wide U across the string bed while you pull the slack through. Dragging it straight across the mains causes friction burn, which notches them.',
       'Check the weave after each row. One missed over or under means re-weaving everything after it.',
     ],
   },
   {
     id: 'tie-off-crosses',
-    related: ['double-half-hitch', 'tie-off-tension'],
+    related: ['double-half-hitch', 'parnell-knot', 'tie-off-tension'],
     title: 'Tie off the crosses',
     summary: 'Finish the last cross with the same knot you used on the mains.',
     minutes: 3,
     instructions: [
       'Tension the last cross and clamp it.',
-      'Tie a double half hitch around the anchor main at the tie-off hole.',
+      'Tie a double half hitch (or a Parnell knot) around the anchor main at the tie-off hole.',
       'Seat the knot firmly with pliers.',
       'Trim the tail to about {{6 mm|¼ in}}.',
     ],

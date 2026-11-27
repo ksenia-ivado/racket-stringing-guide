@@ -19,7 +19,8 @@ export interface SceneOpts {
   metric: boolean
 }
 
-const PALETTE = ['#03100a', '#16602e', '#2fc45e', '#8dffb0']
+/** The bright shade is the app's accent green (--accent in index.css). */
+const PALETTE = ['#03100a', '#16602e', '#2fc45e', '#5cff8d']
 
 export class Gfx {
   ctx: CanvasRenderingContext2D
