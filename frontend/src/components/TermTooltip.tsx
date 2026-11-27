@@ -15,7 +15,6 @@ const KIND_LABEL: Record<string, { label: string; open: string }> = {
 }
 
 const TOOLTIP_ID = 'term-tooltip'
-const SHOW_DELAY = 120
 const HIDE_DELAY = 200
 
 /**
@@ -62,7 +61,8 @@ export function TermTooltip() {
     const onOver = (e: MouseEvent) => {
       if (pointer.current !== 'mouse') return
       const el = termOf(e.target)
-      if (el) later(() => open(el), tipRef.current ? 0 : SHOW_DELAY)
+      // No delay: the definition appears the moment the pointer lands on the term.
+      if (el) open(el)
       else if (inBox(e.target)) window.clearTimeout(timer.current)
     }
     const onOut = (e: MouseEvent) => {
@@ -126,9 +126,13 @@ export function TermTooltip() {
     const place = () => {
       const r = tip.el.getBoundingClientRect()
       const { offsetWidth: w, offsetHeight: h } = box
-      const above = r.top - h - 10 >= 8
-      box.style.top = `${above ? r.top - h - 10 : r.bottom + 10}px`
-      box.style.left = `${Math.min(Math.max(r.left + r.width / 2 - w / 2, 8), window.innerWidth - w - 8)}px`
+      // Above the term; below only when the top of the window would cut it off.
+      const above = r.top - h - 12 >= 4
+      const left = Math.min(Math.max(r.left + r.width / 2 - w / 2, 8), window.innerWidth - w - 8)
+      box.style.top = `${above ? r.top - h - 12 : r.bottom + 12}px`
+      box.style.left = `${left}px`
+      // The arrow points at the middle of the term, even when the box is nudged sideways.
+      box.style.setProperty('--arrow-x', `${Math.min(Math.max(r.left + r.width / 2 - left, 14), w - 14)}px`)
       box.dataset.side = above ? 'above' : 'below'
     }
     place()

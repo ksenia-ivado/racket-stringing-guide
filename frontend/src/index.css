@@ -449,20 +449,45 @@ a.step-list__item {
 
 .term-tooltip {
   position: fixed;
-  z-index: 50;
+  z-index: 100;
   top: -9999px;
   left: 0;
   width: max-content;
-  max-width: min(320px, calc(100vw - 16px));
-  padding: 10px 14px 12px;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: 8px;
+  max-width: min(380px, calc(100vw - 16px));
+  padding: 14px 18px 14px;
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
   background: var(--surface);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-  font-size: 0.85rem;
-  line-height: 1.45;
-  animation: tooltip-in 120ms ease-out;
+  box-shadow:
+    0 0 0 4px var(--tip-bg),
+    0 12px 32px rgba(0, 0, 0, 0.45);
+  font-size: 1rem;
+  line-height: 1.5;
+  pointer-events: auto;
+}
+
+/* Arrow pointing at the term */
+.term-tooltip::after {
+  content: '';
+  position: absolute;
+  left: var(--arrow-x, 50%);
+  width: 12px;
+  height: 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--accent);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.term-tooltip[data-side='above']::after {
+  bottom: -7.5px;
+  border-top: none;
+  border-left: none;
+}
+
+.term-tooltip[data-side='below']::after {
+  top: -7.5px;
+  border-bottom: none;
+  border-right: none;
 }
 
 .term-tooltip p {
@@ -470,7 +495,7 @@ a.step-list__item {
 }
 
 .term-tooltip__kind {
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -479,38 +504,27 @@ a.step-list__item {
 
 .term-tooltip__title {
   margin-top: 2px !important;
+  font-size: 1.15rem;
   font-weight: 700;
+  color: var(--text);
 }
 
 .term-tooltip__hint {
-  margin-top: 4px !important;
-  color: var(--text-muted);
+  margin-top: 6px !important;
+  color: var(--text);
 }
 
 .term-tooltip__open {
   display: inline-block;
-  margin-top: 8px;
+  margin-top: 10px;
   color: var(--accent);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
 }
 
 .term-tooltip__open:hover {
   text-decoration: underline;
-}
-
-@keyframes tooltip-in {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .term-tooltip {
-    animation: none;
-  }
 }
 
 /* ---------- Tools and glossary ---------- */
@@ -613,11 +627,52 @@ a.step-list__item {
 }
 
 .header-link__dot {
-  width: 7px;
-  height: 7px;
+  position: relative;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 6px var(--accent);
+  animation: live-blink 1.6s ease-in-out infinite;
+}
+
+/* A ring that ripples out from the dot, like a broadcast beacon */
+.header-link__dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  animation: live-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.header-link--live {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@keyframes live-ping {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+@keyframes live-blink {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-link__dot,
+  .header-link__dot::after {
+    animation: none;
+  }
 }
 
 .topbar__brand a {

@@ -38,11 +38,18 @@ interface LinkProps {
   short: string
   /** Glowing dot, for the live page. */
   live?: boolean
+  /** Fuller name for screen readers and the hover title, when the label is terse. */
+  description?: string
 }
 
-export function HeaderLink({ href, label, short, live }: LinkProps) {
+export function HeaderLink({ href, label, short, live, description }: LinkProps) {
   return (
-    <a href={href} className="header-link">
+    <a
+      href={href}
+      className={`header-link${live ? ' header-link--live' : ''}`}
+      aria-label={description}
+      title={description}
+    >
       {live && <span className="header-link__dot" aria-hidden="true" />}
       <span className="header-link__long">{label}</span>
       <span className="header-link__short" aria-hidden="true">

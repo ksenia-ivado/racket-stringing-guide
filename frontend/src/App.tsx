@@ -114,7 +114,7 @@ export default function App() {
     <UnitsProvider value={units}>
       <div className="app">
         <Topbar subtitle={`${steps.length} steps · about ${totalMinutes} min`}>
-          <HeaderLink href={TENNIS_URL} label="Live tennis" short="Tennis" live />
+          <HeaderLink href={TENNIS_URL} label="Live" short="Live" live description="Live tennis scores" />
           <UnitsToggle units={units} onChange={setUnits} />
         </Topbar>
         <TermTooltip />
