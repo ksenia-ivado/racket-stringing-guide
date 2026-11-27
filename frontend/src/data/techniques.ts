@@ -34,7 +34,6 @@ export const techniques: Technique[] = [
     ],
     tips: ['Keep tension on the string while you tie. A loose knot lets the last string go slack.'],
     sources: [
-      { title: 'Racquet stringing guide (SlideShare)', url: 'https://pt.slideshare.net/guest40adfff/ss-4135420' },
       { title: 'Wikipedia: Two half-hitches', url: 'https://en.wikipedia.org/wiki/Two_half-hitches' },
     ],
   },
@@ -64,7 +63,6 @@ export const techniques: Technique[] = [
       },
       { title: 'Richard Parnell: video tutorials', url: 'http://www.parnellknot.com/video-tutorials/' },
       { title: 'Talk Tennis forum: Parnell knot', url: 'https://tt.tennis-warehouse.com/index.php?threads/parnell-knot.751797/' },
-      { title: 'Tennis Crown: Tennis string knot types', url: 'https://tenniscrown.com/tennis-string-knot-types/' },
     ],
   },
   {
@@ -93,7 +91,6 @@ export const techniques: Technique[] = [
         title: 'WonderHowTo: Start crosses with a starting knot',
         url: 'https://tennis-lessons.wonderhowto.com/how-to/start-crosses-tennis-racket-with-starting-knot-243998',
       },
-      { title: 'Racquet stringing guide (SlideShare)', url: 'https://pt.slideshare.net/guest40adfff/ss-4135420' },
     ],
   },
   {
