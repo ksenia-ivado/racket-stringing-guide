@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Footer } from './components/Footer'
 import { GlossaryPage } from './components/GlossaryPage'
 import { StepList } from './components/StepList'
 import { StepView } from './components/StepView'
@@ -182,6 +183,7 @@ export default function App() {
             </main>
           </div>
         )}
+        <Footer />
       </div>
     </UnitsProvider>
   )

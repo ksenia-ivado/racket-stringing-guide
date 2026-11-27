@@ -602,6 +602,91 @@ a.step-list__item {
   padding: 5px 12px;
 }
 
+/* ---------- Footer and feedback (deliberately quiet) ---------- */
+.site-footer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 24px 32px;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* The panel is placed against the footer, not the button, so it stays centred on screen */
+.feedback {
+  position: static;
+}
+
+.feedback__toggle {
+  padding: 2px 4px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.feedback__toggle:hover,
+.feedback__toggle[aria-expanded='true'] {
+  color: var(--accent);
+}
+
+.feedback__panel {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  z-index: 60;
+  width: min(340px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.feedback__panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feedback__title {
+  font-weight: 700;
+}
+
+.feedback__panel .segmented {
+  align-self: flex-start;
+}
+
+.feedback__panel textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.feedback__note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 /* ---------- Header link to the other page ---------- */
 .header-link {
   display: inline-flex;

@@ -58,6 +58,8 @@ jobs:
           npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
+          # The Feedback button opens issues on this repository.
+          VITE_GITHUB_REPO: ${{ github.repository }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/dist

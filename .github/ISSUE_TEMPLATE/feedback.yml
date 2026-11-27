@@ -1,0 +1,31 @@
+name: Site feedback
+description: Ideas, problems or kind words about the StringTheory site.
+title: '[Feedback] '
+labels: [feedback]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time. This is posted publicly on the project's issue tracker.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of feedback?
+      options:
+        - Idea
+        - Problem
+        - Praise
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: message
+    attributes:
+      label: Your feedback
+      placeholder: What worked, what did not, what is missing?
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: Filled in automatically when you come from the site.
